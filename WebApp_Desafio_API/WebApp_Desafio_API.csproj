@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.Reporting" Version="2.1.0" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.1.1" />
@@ -28,6 +30,7 @@
     <ProjectReference Include="..\WebApp_Desafio_BackEnd\WebApp_Desafio_BackEnd.csproj">
       <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
     </ProjectReference>
+    <ProjectReference Include="..\WebApp_Desafio_FrontEnd\WebApp_Desafio_FrontEnd.csproj" />
   </ItemGroup>
 
 </Project>

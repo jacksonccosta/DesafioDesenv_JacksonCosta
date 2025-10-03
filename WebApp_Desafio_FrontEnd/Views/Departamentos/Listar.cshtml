@@ -5,7 +5,13 @@
 }
 
 <div class="row mt-3">
-    &nbsp;
+    <div class="col-lg-6 text-left">
+        <button type="button" class="btn btn-outline btn-primary" id="btnRelatorio">
+            <i class="fa fa-file-pdf-o"></i> Relatório
+        </button>
+    </div>
+    <div class="col-lg-6 text-right">
+    </div>
 </div>
 
 <div class="row mt-3">
@@ -26,13 +32,12 @@
 </div>
 
 @section styles
-    {
+{
     <link rel="stylesheet" href="~/lib/sweetalert2/sweetalert2.min.css" />
 }
 
 @section scripts
-    {
-    <!-- SweetAlert2 -->
+{
     <script src="~/lib/sweetalert2/sweetalert2.all.min.js"></script>
 
     <script src="~/js/Departamentos/Listar.js" asp-append-version="true"></script>

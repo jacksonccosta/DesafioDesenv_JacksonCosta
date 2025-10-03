@@ -25,7 +25,12 @@
             <div class="row">
                 <div class="form-group col-lg-7 col-md-6 col-sm-12">
                     <label class="form-label" asp-for="Solicitante"></label>
-                    <input type="text" class="form-control" asp-for="Solicitante">
+                    <select class="form-control" asp-for="Solicitante" id="select-solicitante" style="width: 100%;">
+                        @if (!string.IsNullOrEmpty(Model.Solicitante))
+                        {
+                            <option value="@Model.Solicitante" selected="selected">@Model.Solicitante</option>
+                        }
+                    </select>
                     <span class="text-danger" asp-validation-for="Solicitante"></span>
                 </div>
             </div>

@@ -1,175 +1,164 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using MediatR;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using WebApp_Desafio_API.ViewModels;
-using WebApp_Desafio_BackEnd.Business;
+using System.Threading.Tasks;
+using WebApp_Desafio_BackEnd.CQRS.Chamados.Commands;
+using WebApp_Desafio_BackEnd.CQRS.Chamados.Queries;
+using WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries;
+using WebApp_Desafio_FrontEnd.ViewModels;
+using WebApp_Desafio_FrontEnd.ViewModels.Enums;
+using AspNetCore.Reporting;
 
-namespace WebApp_Desafio_API.Controllers
+namespace WebApp_Desafio_FrontEnd.Controllers
 {
-    /// <summary>
-    /// ChamadosController
-    /// </summary>
-    [ApiController]
-    [Route("api/[controller]")]
     public class ChamadosController : Controller
     {
-        private ChamadosBLL bll = new ChamadosBLL();
+        private readonly IMediator _mediator;
+        private readonly IHostingEnvironment _hostEnvironment;
 
-        /// <summary>
-        /// Lista todos os chamados
-        /// </summary>
-        /// <returns></returns>
+        public ChamadosController(IMediator mediator, IHostingEnvironment hostEnvironment)
+        {
+            _mediator = mediator;
+            _hostEnvironment = hostEnvironment;
+        }
+
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ChamadoResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        [Route("Listar")]
-        public IActionResult Listar()
+        public IActionResult Index() => RedirectToAction(nameof(Listar));
+
+        [HttpGet]
+        public IActionResult Listar() => View("~/Views/Chamados/Listar.cshtml");
+
+        [HttpGet]
+        public async Task<IActionResult> Datatable()
         {
             try
             {
-                var _lst = this.bll.ListarChamados();
+                var lstChamados = await _mediator.Send(new GetAllChamadosQuery());
+                var vms = lstChamados.Select(c => new ChamadoViewModel
+                {
+                    ID = c.ID,
+                    Assunto = c.Assunto,
+                    Solicitante = c.Solicitante,
+                    IdDepartamento = c.IdDepartamento,
+                    Departamento = c.Departamento,
+                    DataAbertura = c.DataAbertura
+                }).ToList();
 
-                var lst = from chamado in _lst
-                          select new ChamadoResponse()
-                          {
-                              id = chamado.ID,
-                              assunto = chamado.Assunto,
-                              solicitante = chamado.Solicitante,
-                              idDepartamento = chamado.IdDepartamento,
-                              departamento = chamado.Departamento,
-                              dataAbertura = chamado.DataAbertura
-                          };
-
-                return Ok(lst);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (ApplicationException ex)
-            {
-                return StatusCode(422, ex.Message);
+                var dataTableVM = new DataTableAjaxViewModel() { data = vms };
+                return Ok(dataTableVM);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(new ResponseViewModel(ex));
             }
         }
 
-        /// <summary>
-        /// Obtém dados de um chamado específico
-        /// </summary>
-        /// <param name="idChamado">O ID do chamado a ser obtido</param>
-        /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(ChamadoResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        [Route("Obter")]
-        public IActionResult Obter([FromQuery] int idChamado)
+        public async Task<IActionResult> Cadastrar()
         {
-            try
-            {
-                var _chamado = this.bll.ObterChamado(idChamado);
-
-                var chamado = new ChamadoResponse()
-                              {
-                                  id = _chamado.ID,
-                                  assunto = _chamado.Assunto,
-                                  solicitante = _chamado.Solicitante,
-                                  idDepartamento = _chamado.IdDepartamento,
-                                  departamento = _chamado.Departamento,
-                                  dataAbertura = _chamado.DataAbertura
-                              };
-
-                return Ok(chamado);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (ApplicationException ex)
-            {
-                return StatusCode(422, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            var chamadoVM = new ChamadoViewModel { DataAbertura = DateTime.Now };
+            ViewData["Title"] = "Cadastrar Novo Chamado";
+            ViewData["ListaDepartamentos"] = await _mediator.Send(new GetAllDepartamentosQuery());
+            return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
         }
 
-        /// <summary>
-        /// Grava os dados de um chamado
-        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Editar([FromRoute] int id)
+        {
+            ViewData["Title"] = "Editar Chamado";
+            var chamado = await _mediator.Send(new GetChamadoByIdQuery { Id = id });
+            var chamadoVM = new ChamadoViewModel
+            {
+                ID = chamado.ID,
+                Assunto = chamado.Assunto,
+                Solicitante = chamado.Solicitante,
+                IdDepartamento = chamado.IdDepartamento,
+                DataAbertura = chamado.DataAbertura
+            };
+            ViewData["ListaDepartamentos"] = await _mediator.Send(new GetAllDepartamentosQuery());
+            return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
+        }
+
         [HttpPost]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        [Route("Gravar")]
-        public IActionResult Gravar([FromBody] ChamadoRequest request)
+        public async Task<IActionResult> Cadastrar(ChamadoViewModel chamadoVM)
         {
             try
             {
-                if (request == null)
-                    throw new ArgumentNullException("Request não informado.");
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    throw new ApplicationException(string.Join(" ", errors));
+                }
 
-                var resultado = this.bll.GravarChamado(request.id,
-                                                       request.assunto,
-                                                       request.solicitante,
-                                                       request.idDepartamento,
-                                                       request.dataAbertura);
+                var command = new GravarChamadoCommand
+                {
+                    ID = chamadoVM.ID,
+                    Assunto = chamadoVM.Assunto,
+                    Solicitante = chamadoVM.Solicitante,
+                    IdDepartamento = chamadoVM.IdDepartamento,
+                    DataAbertura = chamadoVM.DataAbertura
+                };
 
-                return Ok(resultado);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (ApplicationException ex)
-            {
-                return StatusCode(422, ex.Message);
+                var sucesso = await _mediator.Send(command);
+
+                if (sucesso)
+                    return Ok(new ResponseViewModel("Chamado gravado com sucesso!", AlertTypes.success, "Chamados", nameof(Listar)));
+                else
+                    throw new ApplicationException("Falha ao gravar o Chamado.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(new ResponseViewModel(ex));
             }
         }
-        
-        /// <summary>
-        /// Exclui um chamado específico
-        /// </summary>
+
         [HttpDelete]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        [Route("Excluir")]
-        public IActionResult Excluir([FromRoute] int idChamado)
+        public async Task<IActionResult> Excluir([FromRoute] int id)
         {
             try
             {
-                var resultado = this.bll.ExcluirChamado(idChamado);
-
-                return Ok(resultado);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (ApplicationException ex)
-            {
-                return StatusCode(422, ex.Message);
+                var sucesso = await _mediator.Send(new ExcluirChamadoCommand { Id = id });
+                if (sucesso)
+                    return Ok(new ResponseViewModel($"Chamado {id} excluído com sucesso!", AlertTypes.success));
+                else
+                    throw new ApplicationException($"Falha ao excluir o Chamado {id}.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(new ResponseViewModel(ex));
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchSolicitantes(string term)
+        {
+            if (string.IsNullOrEmpty(term) || term.Length < 2)
+            {
+                return Json(new List<object>());
+            }
+            var query = new SearchSolicitantesQuery { TermoBusca = term };
+            var solicitantes = await _mediator.Send(query);
+            return Json(solicitantes);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Report()
+        {
+            string contentRootPath = _hostEnvironment.ContentRootPath;
+            string path = Path.Combine(contentRootPath, "Reports", "rptChamados.rdlc");
+
+            LocalReport localReport = new LocalReport(path);
+
+            var lstChamados = await _mediator.Send(new GetAllChamadosQuery());
+
+            localReport.AddDataSource("dsChamados", lstChamados);
+
+            var result = localReport.Execute(RenderType.Pdf);
+            return File(result.MainStream, "application/pdf", "RelatorioChamados.pdf");
         }
     }
 }

@@ -1,4 +1,24 @@
 ﻿$(document).ready(function () {
+    $('#select-solicitante').select2({
+        placeholder: "Digite para buscar um solicitante",
+        minimumInputLength: 2,
+        ajax: {
+            url: config.contextPath + 'Chamados/SearchSolicitantes',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    term: params.term 
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data
+                };
+            },
+            cache: true
+        }
+    });
 
     $('.glyphicon-calendar').closest("div.date").datepicker({
         todayBtn: "linked",
