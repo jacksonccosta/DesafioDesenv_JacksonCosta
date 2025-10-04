@@ -10,11 +10,14 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Commands
 {
     public class GravarChamadoCommandHandler : IRequestHandler<GravarChamadoCommand, bool>
     {
-        private readonly ChamadosDAL _dal;
+        private readonly ChamadosDAL _chamadosDal;
+        private readonly SolicitantesDAL _solicitantesDal;
 
         public GravarChamadoCommandHandler(IConfiguration configuration)
         {
-            _dal = new ChamadosDAL(configuration.GetConnectionString("DefaultConnection"));
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            _chamadosDal = new ChamadosDAL(connectionString);
+            _solicitantesDal = new SolicitantesDAL(connectionString);
         }
 
         public Task<bool> Handle(GravarChamadoCommand request, CancellationToken cancellationToken)
@@ -24,16 +27,23 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Commands
                 throw new ApplicationException("Não é permitido CRIAR chamados com data retroativa.");
             }
 
+            var solicitante = _solicitantesDal.ObterSolicitante(request.IdSolicitante);
+            if (solicitante == null)
+            {
+                throw new ApplicationException($"Solicitante com ID {request.IdSolicitante} não encontrado.");
+            }
+
             var chamado = new Chamado
             {
                 ID = request.ID,
                 Assunto = request.Assunto,
                 IdSolicitante = request.IdSolicitante,
+                Solicitante = solicitante.Nome,
                 IdDepartamento = request.IdDepartamento,
                 DataAbertura = request.DataAbertura
             };
 
-            var result = _dal.GravarChamado(chamado);
+            var result = _chamadosDal.GravarChamado(chamado);
             return Task.FromResult(result);
         }
     }
