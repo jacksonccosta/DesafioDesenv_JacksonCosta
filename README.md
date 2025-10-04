@@ -80,11 +80,10 @@ Todos os requisitos obrigatórios e extras do desafio foram cumpridos.
 * **WinForm\_Desafio\_Reports:** Projeto auxiliar (Windows Forms) utilizado apenas para o design visual dos relatórios `.rdlc`.
 
 ## 6. Refatoração adicional para inclusão de Testes Unitários
-# Implementação de Testes Unitários
 
 Para garantir a qualidade, a robustez e a manutenibilidade do código do back-end, foi implementada uma suíte de testes unitários. O principal objetivo desses testes é validar a camada de lógica de negócio (CQRS Handlers) de forma isolada, garantindo que as regras e os fluxos de dados se comportem como o esperado.
 
-## Refatoração para Habilitar Testes
+#### Refatoração para Habilitar Testes
 
 O código possuía um acoplamento forte entre a camada de lógica e a camada de acesso a dados. Os `CommandHandlers` e `QueryHandlers` instanciam suas dependências `DAL` diretamente em seus construtores (usando `new ChamadosDAL(...)`). Isso impede a realização de testes unitários, pois a lógica de negócio não pode ser testada sem uma conexão real com o banco de dados.
 
@@ -98,7 +97,7 @@ Para resolver isso e habilitar a criação de testes, o padrão de **Injeção d
 
 Essa refatoração não apenas permite a criação de testes unitários, mas também torna o código mais limpo, desacoplado e aderente aos princípios de design de software S.O.L.I.D.
 
-## Tecnologias Utilizadas nos testes unitários
+#### Tecnologias Utilizadas nos testes unitários
 
 A suíte de testes foi construída utilizando um conjunto de ferramentas padrão e modernas no ecossistema .NET:
 
