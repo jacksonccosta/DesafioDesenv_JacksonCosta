@@ -4,7 +4,7 @@ using WebApp_Desafio_BackEnd.Models;
 
 namespace WebApp_Desafio_BackEnd.DataAccess
 {
-    public class DepartamentosDAL : BaseDAL
+    public class DepartamentosDAL : BaseDAL, IDepartamentosDAL
     {
         public DepartamentosDAL(string connectionString) : base(connectionString) { }
 

@@ -9,11 +9,11 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands
 {
     public class ExcluirDepartamentoCommandHandler : IRequestHandler<ExcluirDepartamentoCommand, bool>
     {
-        private readonly DepartamentosDAL _dal;
+        private readonly IDepartamentosDAL _departamentoDal;
 
-        public ExcluirDepartamentoCommandHandler(IConfiguration configuration)
+        public ExcluirDepartamentoCommandHandler(IDepartamentosDAL departamentoDal)
         {
-            _dal = new DepartamentosDAL(configuration.GetConnectionString("DefaultConnection"));
+            _departamentoDal = departamentoDal ?? throw new ArgumentNullException(nameof(departamentoDal));
         }
 
         public Task<bool> Handle(ExcluirDepartamentoCommand request, CancellationToken cancellationToken)
@@ -21,7 +21,7 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands
             if (request.Id <= 0)
                 throw new ArgumentException("O ID do departamento é inválido.");
 
-            var result = _dal.ExcluirDepartamento(request.Id);
+            var result = _departamentoDal.ExcluirDepartamento(request.Id);
             return Task.FromResult(result);
         }
     }

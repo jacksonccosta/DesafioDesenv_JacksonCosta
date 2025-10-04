@@ -78,3 +78,32 @@ Todos os requisitos obrigatórios e extras do desafio foram cumpridos.
 * **WebApp\_Desafio\_BackEnd:** O "coração" da aplicação (.NET Framework). Contém as implementações dos Handlers do CQRS e a camada de acesso a dados (DAL).
 * **WebApp\_Desafio\_Shared:** Biblioteca de classes compartilhada (.NET Standard 2.0). Contém todos os ViewModels, DTOs e Enums usados pelos outros projetos.
 * **WinForm\_Desafio\_Reports:** Projeto auxiliar (Windows Forms) utilizado apenas para o design visual dos relatórios `.rdlc`.
+
+## 6. Refatoração adicional para inclusão de Testes Unitários
+# Implementação de Testes Unitários
+
+Para garantir a qualidade, a robustez e a manutenibilidade do código do back-end, foi implementada uma suíte de testes unitários. O principal objetivo desses testes é validar a camada de lógica de negócio (CQRS Handlers) de forma isolada, garantindo que as regras e os fluxos de dados se comportem como o esperado.
+
+## Refatoração para Habilitar Testes
+
+O código possuía um acoplamento forte entre a camada de lógica e a camada de acesso a dados. Os `CommandHandlers` e `QueryHandlers` instanciam suas dependências `DAL` diretamente em seus construtores (usando `new ChamadosDAL(...)`). Isso impede a realização de testes unitários, pois a lógica de negócio não pode ser testada sem uma conexão real com o banco de dados.
+
+Para resolver isso e habilitar a criação de testes, o padrão de **Injeção de Dependência (Dependency Injection - DI)** foi aplicado. As seguintes alterações foram realizadas:
+
+1.  **Criação de Interfaces para o Acesso a Dados**: Foram criadas interfaces para cada classe `DAL` (por exemplo, `IChamadosDAL`, `ISolicitantesDAL`). Essas interfaces servem como um "contrato", definindo os métodos que a camada de dados deve oferecer, sem acoplar o código à sua implementação concreta.
+
+2.  **Inversão de Controle (IoC)**: Os construtores dos `CommandHandlers` e `QueryHandlers` foram modificados para receberem as interfaces como parâmetros, em vez de criarem as instâncias `DAL` diretamente. Dessa forma, a responsabilidade de criar e fornecer as dependências foi "invertida" e transferida para um contêiner de DI.
+
+3.  **Registro no Contêiner de DI**: Na classe `Startup.cs` do projeto Front-End, as interfaces e suas respectivas implementações concretas foram registradas no contêiner de injeção de dependência do ASP.NET Core. Isso garante que, quando a aplicação estiver rodando, o contêiner saiba como resolver as dependências automaticamente.
+
+Essa refatoração não apenas permite a criação de testes unitários, mas também torna o código mais limpo, desacoplado e aderente aos princípios de design de software S.O.L.I.D.
+
+## Tecnologias Utilizadas nos testes unitários
+
+A suíte de testes foi construída utilizando um conjunto de ferramentas padrão e modernas no ecossistema .NET:
+
+* **xUnit**: O framework de testes utilizado para estruturar, executar e verificar os testes. É o padrão de fato para projetos .NET modernos, conhecido por sua simplicidade e poder.
+
+* **Moq**: Uma biblioteca de "mocking" popular e poderosa. Foi utilizada para criar implementações falsas ("mocks" ou "dublês") das interfaces `DAL`. Isso nos permite simular o comportamento da camada de acesso a dados (por exemplo, simular o retorno de um usuário do banco ou uma falha ao salvar) para que possamos testar a lógica do `Handler` em completo isolamento.
+
+* **FluentAssertions**: Uma biblioteca de asserção que torna a verificação dos resultados dos testes muito mais legível e expressiva. Em vez de usar `Assert.True(resultado)`, podemos escrever `resultado.Should().BeTrue()`, o que torna a intenção do teste mais clara.
