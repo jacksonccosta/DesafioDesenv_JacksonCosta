@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using WebApp_Desafio_API.ViewModels;
-using WebApp_Desafio_API.ViewModels.Enums;
+using WebApp_Desafio_Shared.ViewModels;
+using WebApp_Desafio_Shared.ViewModels.Enums;
 
 namespace WebApp_Desafio_API.Extensions
 {

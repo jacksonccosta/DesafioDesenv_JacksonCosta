@@ -1,9 +1,7 @@
-﻿using System;
-
-namespace WebApp_Desafio_API.ViewModels
+﻿namespace WebApp_Desafio_Shared.ViewModels
 {
     /// <summary>
-    /// Resposta da chamada
+    /// Resposta da chamada para Departamentos (usado pela API)
     /// </summary>
     public class DepartamentoResponse
     {

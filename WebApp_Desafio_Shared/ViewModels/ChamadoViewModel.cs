@@ -2,9 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Runtime.Serialization;
-using System.Xml.Linq;
 
-namespace WebApp_Desafio_FrontEnd.ViewModels
+namespace WebApp_Desafio_Shared.ViewModels
 {
     [DataContract]
     public class ChamadoViewModel
@@ -23,6 +22,11 @@ namespace WebApp_Desafio_FrontEnd.ViewModels
         [DataMember(Name = "Solicitante")]
         public string Solicitante { get; set; }
 
+        [Display(Name = "IdSolicitante")]
+        [DataMember(Name = "IdSolicitante")]
+        [Range(1, int.MaxValue, ErrorMessage = "O Solicitante é obrigatório.")]
+        public int IdSolicitante { get; set; }
+
         [Display(Name = "IdDepartamento")]
         [DataMember(Name = "IdDepartamento")]
         public int IdDepartamento { get; set; }
@@ -31,21 +35,11 @@ namespace WebApp_Desafio_FrontEnd.ViewModels
         [DataMember(Name = "Departamento")]
         public string Departamento { get; set; }
 
-        [Display(Name = "DataAbertura")]
+        [Display(Name = "Data de Abertura")]
         [DataMember(Name = "DataAbertura")]
         public DateTime DataAbertura { get; set; }
 
         [DataMember(Name = "DataAberturaWrapper")]
-        public string DataAberturaWrapper
-        {
-            get
-            {
-                return DataAbertura.ToString("d", ptBR);
-            }
-            set
-            {
-                DataAbertura = DateTime.Parse(value, ptBR);
-            }
-        }
+        public string DataAberturaWrapper => DataAbertura.ToString("d", ptBR);
     }
 }

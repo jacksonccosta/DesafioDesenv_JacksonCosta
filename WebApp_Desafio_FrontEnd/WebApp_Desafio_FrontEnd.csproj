@@ -24,6 +24,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WebApp_Desafio_BackEnd\WebApp_Desafio_BackEnd.csproj" />
+    <ProjectReference Include="..\WebApp_Desafio_Shared\WebApp_Desafio_Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Reports\rptChamados.rdlc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Reports\rptDepartamentos.rdlc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

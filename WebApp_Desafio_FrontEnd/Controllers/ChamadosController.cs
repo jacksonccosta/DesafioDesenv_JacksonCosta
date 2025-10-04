@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.CQRS.Chamados.Commands;
 using WebApp_Desafio_BackEnd.CQRS.Chamados.Queries;
 using WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries;
-using WebApp_Desafio_FrontEnd.ViewModels;
-using WebApp_Desafio_FrontEnd.ViewModels.Enums;
+using WebApp_Desafio_Shared.ViewModels;
+using WebApp_Desafio_Shared.ViewModels.Enums;
 
 namespace WebApp_Desafio_FrontEnd.Controllers
 {
@@ -27,16 +27,10 @@ namespace WebApp_Desafio_FrontEnd.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
-        {
-            return RedirectToAction(nameof(Listar));
-        }
+        public IActionResult Index() => RedirectToAction(nameof(Listar));
 
         [HttpGet]
-        public IActionResult Listar()
-        {
-            return View("~/Views/Chamados/Listar.cshtml");
-        }
+        public IActionResult Listar() => View("~/Views/Chamados/Listar.cshtml");
 
         [HttpGet]
         public async Task<IActionResult> Datatable()
@@ -54,11 +48,7 @@ namespace WebApp_Desafio_FrontEnd.Controllers
                     DataAbertura = c.DataAbertura
                 }).ToList();
 
-                var dataTableVM = new DataTableAjaxViewModel()
-                {
-                    data = vms
-                };
-
+                var dataTableVM = new DataTableAjaxViewModel() { data = vms };
                 return Ok(dataTableVM);
             }
             catch (Exception ex)
@@ -70,12 +60,15 @@ namespace WebApp_Desafio_FrontEnd.Controllers
         [HttpGet]
         public async Task<IActionResult> Cadastrar()
         {
-            var chamadoVM = new ChamadoViewModel
-            {
-                DataAbertura = DateTime.Now
-            };
+            var chamadoVM = new ChamadoViewModel { DataAbertura = DateTime.Now };
             ViewData["Title"] = "Cadastrar Novo Chamado";
-            ViewData["ListaDepartamentos"] = await _mediator.Send(new GetAllDepartamentosQuery());
+
+            var departamentos = await _mediator.Send(new GetAllDepartamentosQuery());
+            ViewData["ListaDepartamentos"] = departamentos.Select(d => new DepartamentoViewModel { ID = d.ID, Descricao = d.Descricao }).ToList();
+
+            var solicitantes = await _mediator.Send(new GetAllSolicitantesQuery());
+            ViewData["ListaSolicitantes"] = solicitantes.Select(s => new SolicitanteViewModel { ID = s.ID, Nome = s.Nome }).ToList();
+
             return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
         }
 
@@ -83,18 +76,23 @@ namespace WebApp_Desafio_FrontEnd.Controllers
         public async Task<IActionResult> Editar([FromRoute] int id)
         {
             ViewData["Title"] = "Editar Chamado";
-
             var chamado = await _mediator.Send(new GetChamadoByIdQuery { Id = id });
             var chamadoVM = new ChamadoViewModel
             {
                 ID = chamado.ID,
                 Assunto = chamado.Assunto,
+                IdSolicitante = chamado.IdSolicitante,
                 Solicitante = chamado.Solicitante,
                 IdDepartamento = chamado.IdDepartamento,
                 DataAbertura = chamado.DataAbertura
             };
 
-            ViewData["ListaDepartamentos"] = await _mediator.Send(new GetAllDepartamentosQuery());
+            var departamentos = await _mediator.Send(new GetAllDepartamentosQuery());
+            ViewData["ListaDepartamentos"] = departamentos.Select(d => new DepartamentoViewModel { ID = d.ID, Descricao = d.Descricao }).ToList();
+
+            var solicitantes = await _mediator.Send(new GetAllSolicitantesQuery());
+            ViewData["ListaSolicitantes"] = solicitantes.Select(s => new SolicitanteViewModel { ID = s.ID, Nome = s.Nome }).ToList();
+
             return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
         }
 
@@ -113,7 +111,7 @@ namespace WebApp_Desafio_FrontEnd.Controllers
                 {
                     ID = chamadoVM.ID,
                     Assunto = chamadoVM.Assunto,
-                    Solicitante = chamadoVM.Solicitante,
+                    IdSolicitante = chamadoVM.IdSolicitante,
                     IdDepartamento = chamadoVM.IdDepartamento,
                     DataAbertura = chamadoVM.DataAbertura
                 };
@@ -121,7 +119,7 @@ namespace WebApp_Desafio_FrontEnd.Controllers
                 var sucesso = await _mediator.Send(command);
 
                 if (sucesso)
-                    return Ok(new ResponseViewModel("Chamado gravado com sucesso!", AlertTypes.success, "Chamados", nameof(Listar)));
+                    return Ok(new ResponseViewModel("Sucesso!", "Chamado gravado com sucesso!", AlertTypes.success, "Chamados", nameof(Listar)));
                 else
                     throw new ApplicationException("Falha ao gravar o Chamado.");
             }
@@ -137,9 +135,8 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             try
             {
                 var sucesso = await _mediator.Send(new ExcluirChamadoCommand { Id = id });
-
                 if (sucesso)
-                    return Ok(new ResponseViewModel($"Chamado {id} excluído com sucesso!", AlertTypes.success));
+                    return Ok(new ResponseViewModel("Sucesso!", $"Chamado {id} excluído com sucesso!", AlertTypes.success));
                 else
                     throw new ApplicationException($"Falha ao excluir o Chamado {id}.");
             }
@@ -147,6 +144,18 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             {
                 return BadRequest(new ResponseViewModel(ex));
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchSolicitantes(string term)
+        {
+            if (string.IsNullOrEmpty(term) || term.Length < 2)
+            {
+                return Json(new List<object>());
+            }
+            var query = new SearchSolicitantesQuery { TermoBusca = term };
+            var solicitantes = await _mediator.Send(query);
+            return Json(solicitantes);
         }
 
         [HttpGet]
@@ -163,21 +172,6 @@ namespace WebApp_Desafio_FrontEnd.Controllers
 
             var result = localReport.Execute(RenderType.Pdf);
             return File(result.MainStream, "application/pdf", "RelatorioChamados.pdf");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> SearchSolicitantes(string term)
-        {
-            if (string.IsNullOrEmpty(term) || term.Length < 2)
-            {
-                return Json(new List<object>());
-            }
-
-            var query = new SearchSolicitantesQuery { TermoBusca = term };
-            var solicitantes = await _mediator.Send(query);
-
-            // O Select2 espera um formato específico de JSON com as propriedades "id" e "text"
-            return Json(solicitantes);
         }
     }
 }

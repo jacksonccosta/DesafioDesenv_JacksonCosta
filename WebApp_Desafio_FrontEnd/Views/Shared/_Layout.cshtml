@@ -47,13 +47,14 @@
 
     <partial name="_CookieConsentPartial" />
 
-    <div class="container body-content">
+    <div class="container body-content text-center">
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - Netspeed Tecnologia em Sistemas</p>
+            <p>&copy; @DateTime.Now.Year - Netspeed Tecnologia em Sistemas | Desenvolvido por Jackson Costa</p>
         </footer>
     </div>
+
 
     <environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>

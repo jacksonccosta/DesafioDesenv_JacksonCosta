@@ -19,17 +19,16 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Commands
 
         public Task<bool> Handle(GravarChamadoCommand request, CancellationToken cancellationToken)
         {
-            // DESAFIO EXTRA (Requisito 1): Validação de Regra de Negócio
-            if (request.DataAbertura.Date < DateTime.Today)
+            if (request.ID == 0 && request.DataAbertura.Date < DateTime.Today)
             {
-                throw new ApplicationException("Não é permitido criar ou editar chamados com data retroativa.");
+                throw new ApplicationException("Não é permitido CRIAR chamados com data retroativa.");
             }
 
             var chamado = new Chamado
             {
                 ID = request.ID,
                 Assunto = request.Assunto,
-                Solicitante = request.Solicitante,
+                IdSolicitante = request.IdSolicitante,
                 IdDepartamento = request.IdDepartamento,
                 DataAbertura = request.DataAbertura
             };

@@ -1,4 +1,4 @@
-﻿namespace WebApp_Desafio_FrontEnd.ViewModels
+﻿namespace WebApp_Desafio_Shared.ViewModels
 {
     public class DataTableAjaxViewModel
     {
