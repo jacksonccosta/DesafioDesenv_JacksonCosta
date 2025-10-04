@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
 
-namespace WebApp_Desafio_FrontEnd.ViewModels
+namespace WebApp_Desafio_Shared.ViewModels
 {
     [DataContract]
     public class DepartamentoViewModel

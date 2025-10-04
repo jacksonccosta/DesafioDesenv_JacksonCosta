@@ -20,9 +20,10 @@ namespace WebApp_Desafio_BackEnd.DataAccess
                 using (var dbCommand = dbConnection.CreateCommand())
                 {
                     dbCommand.CommandText =
-                        "SELECT c.ID, c.Assunto, c.Solicitante, c.IdDepartamento, d.Descricao AS Departamento, c.DataAbertura " +
+                        "SELECT c.ID, c.Assunto, s.Nome AS Solicitante, c.IdDepartamento, d.Descricao AS Departamento, c.DataAbertura, c.IdSolicitante " +
                         "FROM chamados c " +
-                        "INNER JOIN departamentos d ON c.IdDepartamento = d.ID";
+                        "INNER JOIN departamentos d ON c.IdDepartamento = d.ID " +
+                        "LEFT JOIN solicitantes s ON c.IdSolicitante = s.ID";
 
                     using (var dataReader = dbCommand.ExecuteReader())
                     {
@@ -45,9 +46,10 @@ namespace WebApp_Desafio_BackEnd.DataAccess
                 using (var dbCommand = dbConnection.CreateCommand())
                 {
                     dbCommand.CommandText =
-                        "SELECT c.ID, c.Assunto, c.Solicitante, c.IdDepartamento, d.Descricao AS Departamento, c.DataAbertura " +
+                        "SELECT c.ID, c.Assunto, s.Nome AS Solicitante, c.IdDepartamento, d.Descricao AS Departamento, c.DataAbertura, c.IdSolicitante " +
                         "FROM chamados c " +
                         "INNER JOIN departamentos d ON c.IdDepartamento = d.ID " +
+                        "LEFT JOIN solicitantes s ON c.IdSolicitante = s.ID " +
                         "WHERE c.ID = @idChamado";
 
                     dbCommand.Parameters.AddWithValue("@idChamado", idChamado);
@@ -75,19 +77,19 @@ namespace WebApp_Desafio_BackEnd.DataAccess
                     if (chamado.ID == 0)
                     {
                         dbCommand.CommandText =
-                            "INSERT INTO chamados (Assunto, Solicitante, IdDepartamento, DataAbertura) " +
-                            "VALUES (@Assunto, @Solicitante, @IdDepartamento, @DataAbertura)";
+                            "INSERT INTO chamados (Assunto, IdSolicitante, IdDepartamento, DataAbertura) " +
+                            "VALUES (@Assunto, @IdSolicitante, @IdDepartamento, @DataAbertura)";
                     }
                     else
                     {
                         dbCommand.CommandText =
-                            "UPDATE chamados SET Assunto=@Assunto, Solicitante=@Solicitante, IdDepartamento=@IdDepartamento, DataAbertura=@DataAbertura " +
+                            "UPDATE chamados SET Assunto=@Assunto, IdSolicitante=@IdSolicitante, IdDepartamento=@IdDepartamento, DataAbertura=@DataAbertura " +
                             "WHERE ID=@ID";
                         dbCommand.Parameters.AddWithValue("@ID", chamado.ID);
                     }
 
                     dbCommand.Parameters.AddWithValue("@Assunto", chamado.Assunto);
-                    dbCommand.Parameters.AddWithValue("@Solicitante", chamado.Solicitante);
+                    dbCommand.Parameters.AddWithValue("@IdSolicitante", chamado.IdSolicitante);
                     dbCommand.Parameters.AddWithValue("@IdDepartamento", chamado.IdDepartamento);
                     dbCommand.Parameters.AddWithValue("@DataAbertura", chamado.DataAbertura.ToString(ANSI_DATE_FORMAT));
 
@@ -118,10 +120,11 @@ namespace WebApp_Desafio_BackEnd.DataAccess
             var chamado = new Chamado();
             chamado.ID = dataReader.GetInt32(0);
             chamado.Assunto = dataReader.GetString(1);
-            chamado.Solicitante = dataReader.GetString(2);
+            chamado.Solicitante = dataReader.IsDBNull(2) ? "" : dataReader.GetString(2);
             chamado.IdDepartamento = dataReader.GetInt32(3);
             chamado.Departamento = dataReader.GetString(4);
             chamado.DataAbertura = DateTime.Parse(dataReader.GetString(5));
+            chamado.IdSolicitante = dataReader.IsDBNull(6) ? 0 : dataReader.GetInt32(6);
             return chamado;
         }
     }

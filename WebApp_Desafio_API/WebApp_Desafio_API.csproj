@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="AspNetCore.Reporting" Version="2.1.0" />
     <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.1.1" />
@@ -31,6 +32,7 @@
       <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
     </ProjectReference>
     <ProjectReference Include="..\WebApp_Desafio_FrontEnd\WebApp_Desafio_FrontEnd.csproj" />
+    <ProjectReference Include="..\WebApp_Desafio_Shared\WebApp_Desafio_Shared.csproj" />
   </ItemGroup>
 
 </Project>

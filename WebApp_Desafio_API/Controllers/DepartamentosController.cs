@@ -1,113 +1,118 @@
-﻿using AspNetCore.Reporting;
-using MediatR;
-using Microsoft.AspNetCore.Hosting;
+﻿using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebApp_Desafio_API.Extensions;
 using WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands;
 using WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries;
-using WebApp_Desafio_FrontEnd.ViewModels;
-using WebApp_Desafio_FrontEnd.ViewModels.Enums;
 
-namespace WebApp_Desafio_FrontEnd.Controllers
+using WebApp_Desafio_Shared.ViewModels;
+using WebApp_Desafio_Shared.ViewModels.Enums;
+
+namespace WebApp_Desafio_API.Controllers
 {
-    public class DepartamentosController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class DepartamentosController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IHostingEnvironment _hostEnvironment;
-        public DepartamentosController(IMediator mediator, IHostingEnvironment hostEnvironment)
+
+        public DepartamentosController(IMediator mediator)
         {
             _mediator = mediator;
-            _hostEnvironment = hostEnvironment;
         }
 
         [HttpGet]
-        public IActionResult Index() => RedirectToAction(nameof(Listar));
-
-        [HttpGet]
-        public IActionResult Listar() => View("~/Views/Departamentos/Listar.cshtml");
-
-        [HttpGet]
-        public async Task<IActionResult> Datatable()
+        [Route("Listar")]
+        [ProducesResponseType(typeof(IEnumerable<DepartamentoResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Listar()
         {
             try
             {
-                var lstDepartamentos = await _mediator.Send(new GetAllDepartamentosQuery());
-                var dataTableVM = new DataTableAjaxViewModel() { data = lstDepartamentos };
-                return Ok(dataTableVM);
+                var departamentos = await _mediator.Send(new GetAllDepartamentosQuery());
+
+                var response = departamentos.Select(d => new DepartamentoResponse
+                {
+                    id = d.ID,
+                    descricao = d.Descricao
+                });
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                return BadRequest(new ResponseViewModel(ex));
+                return this.ExceptionProcess(ex);
             }
         }
 
         [HttpGet]
-        public IActionResult Cadastrar()
-        {
-            var departamentoVM = new DepartamentoViewModel();
-            ViewData["Title"] = "Cadastrar Novo Departamento";
-            return View("~/Views/Departamentos/Cadastrar.cshtml", departamentoVM);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Editar([FromRoute] int id)
-        {
-            ViewData["Title"] = "Editar Departamento";
-            var departamento = await _mediator.Send(new GetDepartamentoByIdQuery { Id = id });
-            var departamentoVM = new DepartamentoViewModel
-            {
-                ID = departamento.ID,
-                Descricao = departamento.Descricao
-            };
-            return View("~/Views/Departamentos/Cadastrar.cshtml", departamentoVM);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Cadastrar(DepartamentoViewModel departamentoVM)
+        [Route("Obter")]
+        [ProducesResponseType(typeof(DepartamentoResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Obter([FromQuery] int id)
         {
             try
             {
-                if (!ModelState.IsValid)
+                var departamento = await _mediator.Send(new GetDepartamentoByIdQuery { Id = id });
+                var response = new DepartamentoResponse
                 {
-                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                    throw new ApplicationException(string.Join(" ", errors));
-                }
+                    id = departamento.ID,
+                    descricao = departamento.Descricao
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ExceptionProcess(ex);
+            }
+        }
 
+        [HttpPost]
+        [Route("Gravar")]
+        [ProducesResponseType(typeof(ResponseViewModel), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Gravar([FromBody] DepartamentoResponse departamento)
+        {
+            try
+            {
                 var command = new GravarDepartamentoCommand
                 {
-                    ID = departamentoVM.ID,
-                    Descricao = departamentoVM.Descricao
+                    ID = departamento.id,
+                    Descricao = departamento.descricao
                 };
 
                 var sucesso = await _mediator.Send(command);
 
                 if (sucesso)
-                    return Ok(new ResponseViewModel("Departamento gravado com sucesso!", AlertTypes.success, "Departamentos", nameof(Listar)));
+                    return Ok(new ResponseViewModel("Sucesso!", "Departamento gravado com sucesso!", AlertTypes.success));
                 else
                     throw new ApplicationException("Falha ao gravar o Departamento.");
             }
             catch (Exception ex)
             {
-                return BadRequest(new ResponseViewModel(ex));
+                return this.ExceptionProcess(ex);
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Relatorio()
+        [HttpDelete]
+        [Route("Excluir")]
+        [ProducesResponseType(typeof(ResponseViewModel), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Excluir([FromQuery] int id)
         {
-            string contentRootPath = _hostEnvironment.ContentRootPath;
-            string path = Path.Combine(contentRootPath, "Reports", "rptDepartamentos.rdlc");
+            try
+            {
+                var sucesso = await _mediator.Send(new ExcluirDepartamentoCommand { Id = id });
 
-            LocalReport localReport = new LocalReport(path);
-
-            var lstDepartamentos = await _mediator.Send(new GetAllDepartamentosQuery());
-            localReport.AddDataSource("dsDepartamentos", lstDepartamentos);
-
-            var result = localReport.Execute(RenderType.Pdf);
-            return File(result.MainStream, "application/pdf", "RelatorioDepartamentos.pdf");
+                if (sucesso)
+                    return Ok(new ResponseViewModel("Sucesso!", $"Departamento {id} excluído com sucesso!", AlertTypes.success));
+                else
+                    throw new ApplicationException($"Falha ao excluir o Departamento {id}.");
+            }
+            catch (Exception ex)
+            {
+                return this.ExceptionProcess(ex);
+            }
         }
     }
 }

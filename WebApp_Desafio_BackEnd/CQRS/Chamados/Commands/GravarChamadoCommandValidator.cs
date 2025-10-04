@@ -10,9 +10,8 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Commands
                 .NotEmpty().WithMessage("O campo 'Assunto' é obrigatório.")
                 .MaximumLength(100).WithMessage("O campo 'Assunto' deve ter no máximo 100 caracteres.");
 
-            RuleFor(x => x.Solicitante)
-                .NotEmpty().WithMessage("O campo 'Solicitante' é obrigatório.")
-                .MaximumLength(100).WithMessage("O campo 'Solicitante' deve ter no máximo 100 caracteres.");
+            RuleFor(x => x.IdSolicitante)
+                .GreaterThan(0).WithMessage("O campo 'Solicitante' é obrigatório.");
 
             RuleFor(x => x.IdDepartamento)
                 .GreaterThan(0).WithMessage("O campo 'Departamento' é obrigatório.");

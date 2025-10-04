@@ -1,39 +1,34 @@
 ﻿using System;
 
-namespace WebApp_Desafio_API.ViewModels
+namespace WebApp_Desafio_Shared.ViewModels
 {
     /// <summary>
-    /// Resposta da chamada
+    /// Representa os dados enviados para a API para gravar (criar/editar) um Chamado.
     /// </summary>
-    public class ChamadoResponse
+    public class ChamadoRequest
     {
         /// <summary>
-        /// ID do Chamado
+        /// ID do Chamado (0 para um novo chamado).
         /// </summary>
         public int id { get; set; }
 
         /// <summary>
-        /// Assunto do Chamado
+        /// Assunto do Chamado.
         /// </summary>
         public string assunto { get; set; }
 
         /// <summary>
-        /// Solicitante do Chamado
+        /// ID do Solicitante do Chamado (referência à tabela de Solicitantes).
         /// </summary>
-        public string solicitante { get; set; }
+        public int idSolicitante { get; set; }
 
         /// <summary>
-        /// ID do Departamento do Chamado
+        /// ID do Departamento do Chamado.
         /// </summary>
         public int idDepartamento { get; set; }
 
         /// <summary>
-        /// Nome do Departamento do Chamado
-        /// </summary>
-        public string departamento { get; set; }
-
-        /// <summary>
-        /// Data de Abertura do Chamado
+        /// Data de Abertura do Chamado.
         /// </summary>
         public DateTime dataAbertura { get; set; }
     }
