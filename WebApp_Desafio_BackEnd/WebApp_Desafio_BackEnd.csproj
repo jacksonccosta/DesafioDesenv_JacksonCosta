@@ -132,6 +132,9 @@
     <Compile Include="DataAccess\BaseDAL.cs" />
     <Compile Include="DataAccess\DepartamentosDAL.cs" />
     <Compile Include="DataAccess\ChamadosDAL.cs" />
+    <Compile Include="DataAccess\IChamadosDAL.cs" />
+    <Compile Include="DataAccess\IDepartamentosDAL.cs" />
+    <Compile Include="DataAccess\ISolicitantesDAL.cs" />
     <Compile Include="DataAccess\SolicitantesDAL.cs" />
     <Compile Include="Models\Chamado.cs" />
     <Compile Include="Models\Departamento.cs" />

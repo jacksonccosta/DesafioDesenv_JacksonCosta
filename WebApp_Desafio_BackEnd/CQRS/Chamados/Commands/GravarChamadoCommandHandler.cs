@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,14 +9,13 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Commands
 {
     public class GravarChamadoCommandHandler : IRequestHandler<GravarChamadoCommand, bool>
     {
-        private readonly ChamadosDAL _chamadosDal;
-        private readonly SolicitantesDAL _solicitantesDal;
+        private readonly IChamadosDAL _chamadosDal;
+        private readonly ISolicitantesDAL _solicitantesDal;
 
-        public GravarChamadoCommandHandler(IConfiguration configuration)
+        public GravarChamadoCommandHandler(IChamadosDAL chamadosDal, ISolicitantesDAL solicitantesDal)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            _chamadosDal = new ChamadosDAL(connectionString);
-            _solicitantesDal = new SolicitantesDAL(connectionString);
+            _chamadosDal = chamadosDal ?? throw new ArgumentNullException(nameof(chamadosDal));
+            _solicitantesDal = solicitantesDal ?? throw new ArgumentNullException(nameof(solicitantesDal));
         }
 
         public Task<bool> Handle(GravarChamadoCommand request, CancellationToken cancellationToken)

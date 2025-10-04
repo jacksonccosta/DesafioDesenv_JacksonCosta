@@ -12,6 +12,7 @@ using Newtonsoft.Json.Serialization;
 using System.Globalization;
 using System.Text;
 using WebApp_Desafio_BackEnd;
+using WebApp_Desafio_BackEnd.DataAccess;
 
 namespace WebApp_Desafio_FrontEnd
 {
@@ -33,6 +34,14 @@ namespace WebApp_Desafio_FrontEnd
             });
 
             services.AddSingleton(Configuration);
+
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
+
+            
+            services.AddScoped<IChamadosDAL>(provider => new ChamadosDAL(connectionString));
+            services.AddScoped<ISolicitantesDAL>(provider => new SolicitantesDAL(connectionString));
+            services.AddScoped<IDepartamentosDAL>(provider => new DepartamentosDAL(connectionString));
+
 
             services
                 .AddHttpContextAccessor()

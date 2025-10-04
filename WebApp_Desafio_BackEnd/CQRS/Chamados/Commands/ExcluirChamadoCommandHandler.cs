@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.DataAccess;
@@ -8,11 +9,11 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Commands
 {
     public class ExcluirChamadoCommandHandler : IRequestHandler<ExcluirChamadoCommand, bool>
     {
-        private readonly ChamadosDAL _dal;
+        private readonly IChamadosDAL _chamadosDal;
 
-        public ExcluirChamadoCommandHandler(IConfiguration configuration)
+        public ExcluirChamadoCommandHandler(IChamadosDAL chamadosDal)
         {
-            _dal = new ChamadosDAL(configuration.GetConnectionString("DefaultConnection"));
+            _chamadosDal = chamadosDal ?? throw new ArgumentNullException(nameof(chamadosDal));
         }
 
         public Task<bool> Handle(ExcluirChamadoCommand request, CancellationToken cancellationToken)
@@ -20,7 +21,7 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Commands
             if (request.Id <= 0)
                 throw new System.ArgumentException("O ID do chamado é inválido.");
 
-            var result = _dal.ExcluirChamado(request.Id);
+            var result = _chamadosDal.ExcluirChamado(request.Id);
             return Task.FromResult(result);
         }
     }

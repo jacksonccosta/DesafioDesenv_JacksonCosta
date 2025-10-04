@@ -10,11 +10,11 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Queries
 {
     public class GetChamadoByIdQueryHandler : IRequestHandler<GetChamadoByIdQuery, Chamado>
     {
-        private readonly ChamadosDAL _dal;
+        private readonly IChamadosDAL _chamadosDal;
 
-        public GetChamadoByIdQueryHandler(IConfiguration configuration)
+        public GetChamadoByIdQueryHandler(IChamadosDAL chamadosDal)
         {
-            _dal = new ChamadosDAL(configuration.GetConnectionString("DefaultConnection"));
+            _chamadosDal = chamadosDal ?? throw new ArgumentNullException(nameof(chamadosDal));
         }
 
         public Task<Chamado> Handle(GetChamadoByIdQuery request, CancellationToken cancellationToken)
@@ -22,7 +22,7 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Queries
             if (request.Id <= 0)
                 throw new ArgumentException("O ID do chamado é inválido.");
 
-            var chamado = _dal.ObterChamado(request.Id);
+            var chamado = _chamadosDal.ObterChamado(request.Id);
 
             if (chamado == null)
                 throw new ApplicationException("Chamado não encontrado.");

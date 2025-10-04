@@ -9,11 +9,11 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands
 {
     public class GravarDepartamentoCommandHandler : IRequestHandler<GravarDepartamentoCommand, bool>
     {
-        private readonly DepartamentosDAL _dal;
+        private readonly IDepartamentosDAL _departamentosDal;
 
-        public GravarDepartamentoCommandHandler(IConfiguration configuration)
+        public GravarDepartamentoCommandHandler(IDepartamentosDAL departamentosDal)
         {
-            _dal = new DepartamentosDAL(configuration.GetConnectionString("DefaultConnection"));
+            _departamentosDal = departamentosDal ?? throw new System.ArgumentNullException(nameof(departamentosDal));
         }
 
         public Task<bool> Handle(GravarDepartamentoCommand request, CancellationToken cancellationToken)
@@ -24,7 +24,7 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands
                 Descricao = request.Descricao
             };
 
-            var result = _dal.GravarDepartamento(departamento);
+            var result = _departamentosDal.GravarDepartamento(departamento);
             return Task.FromResult(result);
         }
     }

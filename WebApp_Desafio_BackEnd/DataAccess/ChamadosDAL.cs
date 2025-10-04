@@ -5,7 +5,7 @@ using WebApp_Desafio_BackEnd.Models;
 
 namespace WebApp_Desafio_BackEnd.DataAccess
 {
-    public class ChamadosDAL : BaseDAL
+    public class ChamadosDAL : BaseDAL, IChamadosDAL
     {
         private const string ANSI_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
