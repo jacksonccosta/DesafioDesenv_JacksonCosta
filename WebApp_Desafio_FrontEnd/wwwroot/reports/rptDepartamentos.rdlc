@@ -6,10 +6,10 @@
         <TablixBody>
           <TablixColumns>
             <TablixColumn>
-              <Width>3.45722cm</Width>
+              <Width>8.255cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>13.05278cm</Width>
+              <Width>8.255cm</Width>
             </TablixColumn>
           </TablixColumns>
           <TablixRows>
@@ -32,9 +32,7 @@
                               </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
+                          <Style />
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox4</rd:DefaultName>
@@ -67,9 +65,7 @@
                               </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
+                          <Style />
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox8</rd:DefaultName>
@@ -104,9 +100,7 @@
                               <Style />
                             </TextRun>
                           </TextRuns>
-                          <Style>
-                            <TextAlign>Center</TextAlign>
-                          </Style>
+                          <Style />
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>ID</rd:DefaultName>
@@ -121,7 +115,6 @@
                         <PaddingBottom>2pt</PaddingBottom>
                       </Style>
                     </Textbox>
-                    <rd:Selected>true</rd:Selected>
                   </CellContents>
                 </TablixCell>
                 <TablixCell>
@@ -137,9 +130,7 @@
                               <Style />
                             </TextRun>
                           </TextRuns>
-                          <Style>
-                            <TextAlign>Left</TextAlign>
-                          </Style>
+                          <Style />
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Descricao</rd:DefaultName>
@@ -177,6 +168,7 @@
           </TablixMembers>
         </TablixRowHierarchy>
         <DataSetName>dsDepartamentos</DataSetName>
+        <Top>0cm</Top>
         <Height>1.2cm</Height>
         <Width>16.51cm</Width>
         <Style>
@@ -189,7 +181,7 @@
     <Height>2in</Height>
     <Style />
   </Body>
-  <Width>6.52778in</Width>
+  <Width>6.5in</Width>
   <Page>
     <PageHeader>
       <Height>2.82222cm</Height>

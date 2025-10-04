@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using WebApp_Desafio_BackEnd.CQRS.Chamados.Queries;
 using WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands;
 using WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries;
 using WebApp_Desafio_Shared.ViewModels;
@@ -122,6 +123,22 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             LocalReport localReport = new LocalReport(path);
             var lstDepartamentos = await _mediator.Send(new GetAllDepartamentosQuery());
             localReport.AddDataSource("dsDepartamentos", lstDepartamentos);
+
+            var result = localReport.Execute(RenderType.Pdf);
+            return File(result.MainStream, "application/pdf", "RelatorioDepartamentos.pdf");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Report()
+        {
+            string contentRootPath = _hostEnvironment.ContentRootPath;
+            string path = Path.Combine(contentRootPath, "Reports", "rptDepartamentos.rdlc");
+
+            LocalReport localReport = new LocalReport(path);
+
+            var lstChamados = await _mediator.Send(new GetAllChamadosQuery());
+
+            localReport.AddDataSource("dsDepartamentos", lstChamados);
 
             var result = localReport.Execute(RenderType.Pdf);
             return File(result.MainStream, "application/pdf", "RelatorioDepartamentos.pdf");
