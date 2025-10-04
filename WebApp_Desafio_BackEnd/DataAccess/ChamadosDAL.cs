@@ -77,21 +77,22 @@ namespace WebApp_Desafio_BackEnd.DataAccess
                     if (chamado.ID == 0)
                     {
                         dbCommand.CommandText =
-                            "INSERT INTO chamados (Assunto, IdSolicitante, IdDepartamento, DataAbertura) " +
-                            "VALUES (@Assunto, @IdSolicitante, @IdDepartamento, @DataAbertura)";
+                            "INSERT INTO chamados (Assunto, IdSolicitante, Solicitante, IdDepartamento, DataAbertura) " +
+                            "VALUES (@Assunto, @IdSolicitante, @Solicitante, @IdDepartamento, @DataAbertura)";
                     }
                     else
                     {
                         dbCommand.CommandText =
-                            "UPDATE chamados SET Assunto=@Assunto, IdSolicitante=@IdSolicitante, IdDepartamento=@IdDepartamento, DataAbertura=@DataAbertura " +
+                            "UPDATE chamados SET Assunto=@Assunto, IdSolicitante=@IdSolicitante, Solicitante=@Solicitante, IdDepartamento=@IdDepartamento, DataAbertura=@DataAbertura " +
                             "WHERE ID=@ID";
                         dbCommand.Parameters.AddWithValue("@ID", chamado.ID);
                     }
 
                     dbCommand.Parameters.AddWithValue("@Assunto", chamado.Assunto);
                     dbCommand.Parameters.AddWithValue("@IdSolicitante", chamado.IdSolicitante);
+                    dbCommand.Parameters.AddWithValue("@Solicitante", chamado.Solicitante);
                     dbCommand.Parameters.AddWithValue("@IdDepartamento", chamado.IdDepartamento);
-                    dbCommand.Parameters.AddWithValue("@DataAbertura", chamado.DataAbertura.ToString(ANSI_DATE_FORMAT));
+                    dbCommand.Parameters.AddWithValue("@DataAbertura", chamado.DataAbertura.ToString("yyyy-MM-dd HH:mm:ss"));
 
                     regsAfetados = dbCommand.ExecuteNonQuery();
                 }
