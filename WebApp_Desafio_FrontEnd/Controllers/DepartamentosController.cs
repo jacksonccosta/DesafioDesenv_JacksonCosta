@@ -8,8 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands;
 using WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries;
-using WebApp_Desafio_FrontEnd.ViewModels;
-using WebApp_Desafio_FrontEnd.ViewModels.Enums;
+using WebApp_Desafio_Shared.ViewModels;
+using WebApp_Desafio_Shared.ViewModels.Enums;
 
 namespace WebApp_Desafio_FrontEnd.Controllers
 {
@@ -86,9 +86,26 @@ namespace WebApp_Desafio_FrontEnd.Controllers
                 var sucesso = await _mediator.Send(command);
 
                 if (sucesso)
-                    return Ok(new ResponseViewModel("Departamento gravado com sucesso!", AlertTypes.success, "Departamentos", nameof(Listar)));
+                    return Ok(new ResponseViewModel("Sucesso!", "Departamento gravado com sucesso!", AlertTypes.success, "Departamentos", nameof(Listar)));
                 else
                     throw new ApplicationException("Falha ao gravar o Departamento.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseViewModel(ex));
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Excluir([FromRoute] int id)
+        {
+            try
+            {
+                var sucesso = await _mediator.Send(new ExcluirDepartamentoCommand { Id = id });
+                if (sucesso)
+                    return Ok(new ResponseViewModel("Sucesso!", $"Departamento {id} excluído com sucesso!", AlertTypes.success));
+                else
+                    throw new ApplicationException($"Falha ao excluir o Departamento {id}.");
             }
             catch (Exception ex)
             {

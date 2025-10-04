@@ -1,6 +1,5 @@
-﻿@model WebApp_Desafio_FrontEnd.ViewModels.ChamadoViewModel
-
-@using WebApp_Desafio_FrontEnd.ViewModels
+﻿@model WebApp_Desafio_Shared.ViewModels.ChamadoViewModel
+@using WebApp_Desafio_Shared.ViewModels
 
 <div class="row wrapper border-bottom white-bg page-heading header-title">
     <div class="col-sm-12 col-md-6 text-left align-self-center order-md-0 order-12">
@@ -10,9 +9,7 @@
 
 <div class="row">
     <div class="col-lg-12">
-
-        <form id="form" asp-action="Cadastrar" class="wizard-big" enctype="multipart/form-data" role="form" onsubmit="return false;">
-
+        <form id="form" asp-action="Cadastrar" class="wizard-big" role="form" onsubmit="return false;">
             <input type="hidden" asp-for="ID" />
 
             <div class="row">
@@ -22,42 +19,38 @@
                     <span class="text-danger" asp-validation-for="Assunto"></span>
                 </div>
             </div>
+
             <div class="row">
                 <div class="form-group col-lg-7 col-md-6 col-sm-12">
-                    <label class="form-label" asp-for="Solicitante"></label>
-                    <select class="form-control" asp-for="Solicitante" id="select-solicitante" style="width: 100%;">
-                        @if (!string.IsNullOrEmpty(Model.Solicitante))
+                    <label class="form-label">Solicitante</label>
+                    <select class="form-control" asp-for="IdSolicitante">
+                        <option value="">Selecione um solicitante</option>
+                        @foreach (var item in ViewData["ListaSolicitantes"] as List<SolicitanteViewModel>)
                         {
-                            <option value="@Model.Solicitante" selected="selected">@Model.Solicitante</option>
+                            <option value="@item.ID">@item.Nome</option>
                         }
                     </select>
-                    <span class="text-danger" asp-validation-for="Solicitante"></span>
+                    <span class="text-danger" asp-validation-for="IdSolicitante"></span>
                 </div>
             </div>
+
             <div class="row">
                 <div class="form-group col-lg-5 col-md-4 col-sm-8">
                     <label class="form-label" asp-for="Departamento"></label>
-                    <select data-placeholder="Selecionar" class="form-control chosen-select" asp-for="IdDepartamento" readonly="readonly" id="Departamento">
-                        <option value=""></option>
+                    <select class="form-control" asp-for="IdDepartamento">
+                        <option value="">Selecione um departamento</option>
                         @foreach (var item in ViewData["ListaDepartamentos"] as List<DepartamentoViewModel>)
                         {
-                            if (item.ID == Model.IdDepartamento)
-                            {
-                                <option data-codbanco="@item.ID" value="@item.ID" selected="selected">@item.Descricao</option>
-                            }
-                            else
-                            {
-                                <option data-codbanco="@item.ID" value="@item.ID">@item.Descricao</option>
-                            }
+                            <option value="@item.ID">@item.Descricao</option>
                         }
                     </select>
-                    <span class="text-danger" asp-validation-for="Departamento"></span>
+                    <span class="text-danger" asp-validation-for="IdDepartamento"></span>
                 </div>
             </div>
+
             <div class="row">
                 <div class="form-group col-lg-3 col-md-3 col-sm-3">
                     <label class="form-label" asp-for="DataAbertura"></label>
-
                     <div class="input-group date" data-provide="datepicker">
                         <input type="text" class="form-control" asp-for="DataAbertura" asp-format="{0:dd/MM/yyyy}" />
                         <div class="input-group-addon">
@@ -66,7 +59,6 @@
                     </div>
                     <span class="text-danger" asp-validation-for="DataAbertura"></span>
                 </div>
-
             </div>
         </form>
     </div>
@@ -76,30 +68,23 @@
     <fieldset>
         <div class="row">
             <div class="form-group col-sm-12 text-right float-right mb-0">
-                <button type="button" id="btnCancelar" class="btn btn-outline btn-default" data-style="slide-left">Cancelar</button>
-                @*<button type="button" id="btnExcluir" class="btn btn-outline btn-danger" data-style="slide-left">Excluir</button>*@
-                <button type="button" id="btnSalvar" class="btn btn-outline btn-primary" data-style="slide-left">Salvar</button>
+                <button type="button" id="btnCancelar" class="btn btn-outline btn-default">Cancelar</button>
+                <button type="button" id="btnSalvar" class="btn btn-outline btn-primary">Salvar</button>
             </div>
         </div>
     </fieldset>
 </div>
 
 @section styles
-    {
+{
     <link rel="stylesheet" href="~/lib/sweetalert2/sweetalert2.min.css" />
-    @*<link rel="stylesheet" href="~/lib/bootstrap-datepicker/css/bootstrap-datepicker.min.css" />*@
-    @*<link rel="stylesheet" href="~/lib/bootstrap-datepicker/css/bootstrap-datepicker3.min.css" />*@
 }
 
 @section scripts
-    {
-    <!-- SweetAlert2 -->
+{
     <script src="~/lib/sweetalert2/sweetalert2.all.min.js"></script>
-    <!-- Bootstrap Datepicker -->
     <script src="~/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
     <script src="~/lib/bootstrap-datepicker/locales/bootstrap-datepicker.pt-br.min.js"></script>
-
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-
     <script src="~/js/Chamados/Cadastrar.js" asp-append-version="true"></script>
 }

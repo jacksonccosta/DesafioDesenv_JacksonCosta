@@ -114,10 +114,14 @@
     <Compile Include="CQRS\Chamados\Commands\GravarChamadoCommandValidator.cs" />
     <Compile Include="CQRS\Chamados\Queries\GetAllChamadosQuery.cs" />
     <Compile Include="CQRS\Chamados\Queries\GetAllChamadosQueryHandler.cs" />
+    <Compile Include="CQRS\Chamados\Queries\GetAllSolicitantesQuery.cs" />
+    <Compile Include="CQRS\Chamados\Queries\GetAllSolicitantesQueryHandler.cs" />
     <Compile Include="CQRS\Chamados\Queries\GetChamadoByIdQuery.cs" />
     <Compile Include="CQRS\Chamados\Queries\GetChamadoByIdQueryHandler.cs" />
     <Compile Include="CQRS\Chamados\Queries\SearchSolicitantesQuery.cs" />
     <Compile Include="CQRS\Chamados\Queries\SearchSolicitantesQueryHandler.cs" />
+    <Compile Include="CQRS\Departamentos\Commands\ExcluirDepartamentoCommand.cs" />
+    <Compile Include="CQRS\Departamentos\Commands\ExcluirDepartamentoCommandHandler.cs" />
     <Compile Include="CQRS\Departamentos\Commands\GravarDepartamentoCommand.cs" />
     <Compile Include="CQRS\Departamentos\Commands\GravarDepartamentoCommandHandler.cs" />
     <Compile Include="CQRS\Departamentos\Commands\GravarDepartamentoCommandValidator.cs" />
@@ -128,8 +132,10 @@
     <Compile Include="DataAccess\BaseDAL.cs" />
     <Compile Include="DataAccess\DepartamentosDAL.cs" />
     <Compile Include="DataAccess\ChamadosDAL.cs" />
+    <Compile Include="DataAccess\SolicitantesDAL.cs" />
     <Compile Include="Models\Chamado.cs" />
     <Compile Include="Models\Departamento.cs" />
+    <Compile Include="Models\Solicitante.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -139,7 +145,7 @@
   <ItemGroup>
     <Content Include="..\DesafioDB.db">
       <Link>Dados\DesafioDB.db</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup />

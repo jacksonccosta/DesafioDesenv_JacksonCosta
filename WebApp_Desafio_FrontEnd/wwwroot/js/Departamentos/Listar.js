@@ -1,9 +1,9 @@
 ﻿$(document).ready(function () {
 
     var table = $('#dataTables-Departamentos').DataTable({
-        paging: false,
+        paging: true,
         ordering: true,
-        info: false,
+        info: true,
         searching: true,
         processing: true,
         serverSide: false,
@@ -30,7 +30,6 @@
         }
     });
 
-    // Evento para selecionar a linha com um clique
     $('#dataTables-Departamentos tbody').on('click', 'tr', function () {
         if ($(this).hasClass('selected')) {
             $(this).removeClass('selected');
@@ -40,18 +39,68 @@
         }
     });
 
-    // REQUISITO 4: Evento de duplo-clique para editar
     $('#dataTables-Departamentos tbody').on('dblclick', 'tr', function () {
         var data = table.row(this).data();
         if (data && data.ID) {
-            // Nota: A tela de edição de departamentos precisa ser criada.
-            // O código abaixo assume que a rota será /Departamentos/Editar/id
             window.location.href = config.contextPath + 'Departamentos/Editar/' + data.ID;
         }
     });
 
-
     $('#btnRelatorio').click(function () {
         window.location.href = config.contextPath + 'Departamentos/Relatorio';
+    });
+
+    $('#btnAdicionar').click(function () {
+        window.location.href = config.contextPath + 'Departamentos/Cadastrar';
+    });
+
+    $('#btnEditar').click(function () {
+        var data = table.row('.selected').data();
+        if (data && data.ID) {
+            window.location.href = config.contextPath + 'Departamentos/Editar/' + data.ID;
+        } else {
+            Swal.fire('Atenção', 'Selecione um departamento para editar.', 'warning');
+        }
+    });
+
+    $('#btnExcluir').click(function () {
+        var data = table.row('.selected').data();
+        if (!data || !data.ID) {
+            Swal.fire('Atenção', 'Selecione um departamento para excluir.', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Confirmar Exclusão',
+            text: "Tem certeza de que deseja excluir o departamento '" + data.Descricao + "'?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonText: 'Sim, excluir!',
+            cancelButtonText: 'Cancelar'
+        }).then(function (result) {
+            if (result.value) {
+                $.ajax({
+                    url: config.contextPath + 'Departamentos/Excluir/' + data.ID,
+                    type: 'DELETE',
+                    success: function (result) {
+                        Swal.fire({
+                            type: result.type,
+                            title: result.title,
+                            text: result.message,
+                        }).then(function () {
+                            table.ajax.reload();
+                        });
+                    },
+                    error: function (result) {
+                        let errorResponse = result.responseJSON;
+                        Swal.fire({
+                            title: errorResponse.title,
+                            text: errorResponse.message,
+                            icon: 'error'
+                        });
+                    }
+                });
+            }
+        });
     });
 });

@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace WebApp_Desafio_API.ViewModels
+namespace WebApp_Desafio_Shared.ViewModels
 {
     /// <summary>
-    /// Solicitação da chamada
+    /// Resposta da chamada para Chamados (usado pela API)
     /// </summary>
-    public class ChamadoRequest
+    public class ChamadoResponse
     {
         /// <summary>
         /// ID do Chamado
@@ -18,7 +18,7 @@ namespace WebApp_Desafio_API.ViewModels
         public string assunto { get; set; }
 
         /// <summary>
-        /// Solicitante do Chamado
+        /// Nome do Solicitante do Chamado
         /// </summary>
         public string solicitante { get; set; }
 
@@ -26,6 +26,11 @@ namespace WebApp_Desafio_API.ViewModels
         /// ID do Departamento do Chamado
         /// </summary>
         public int idDepartamento { get; set; }
+
+        /// <summary>
+        /// Nome do Departamento do Chamado
+        /// </summary>
+        public string departamento { get; set; }
 
         /// <summary>
         /// Data de Abertura do Chamado

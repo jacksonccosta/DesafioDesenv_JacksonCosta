@@ -1,24 +1,4 @@
 ﻿$(document).ready(function () {
-    $('#select-solicitante').select2({
-        placeholder: "Digite para buscar um solicitante",
-        minimumInputLength: 2,
-        ajax: {
-            url: config.contextPath + 'Chamados/SearchSolicitantes',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    term: params.term 
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: data
-                };
-            },
-            cache: true
-        }
-    });
 
     $('.glyphicon-calendar').closest("div.date").datepicker({
         todayBtn: "linked",
@@ -35,11 +15,11 @@
             html: "Deseja cancelar essa operação? O registro não será salvo.",
             type: "warning",
             showCancelButton: true,
+            confirmButtonText: 'Sim, cancelar!',
+            cancelButtonText: 'Não'
         }).then(function (result) {
             if (result.value) {
-                history.back();
-            } else {
-                console.log("Cancelou a inclusão.");
+                window.location.href = config.contextPath + 'Chamados/Listar';
             }
         });
     });
@@ -53,14 +33,12 @@
 
         let chamado = SerielizeForm($('#form'));
         let url = $('#form').attr('action');
-        //debugger;
 
         $.ajax({
             type: "POST",
             url: url,
             data: chamado,
             success: function (result) {
-
                 Swal.fire({
                     type: result.Type,
                     title: result.Title,
@@ -68,18 +46,15 @@
                 }).then(function () {
                     window.location.href = config.contextPath + result.Controller + '/' + result.Action;
                 });
-
             },
             error: function (result) {
-
+                let errorResponse = result.responseJSON;
                 Swal.fire({
-                    text: result,
+                    text: errorResponse.message,
                     confirmButtonText: 'OK',
                     icon: 'error'
                 });
-
-            },
+            }
         });
     });
-
 });

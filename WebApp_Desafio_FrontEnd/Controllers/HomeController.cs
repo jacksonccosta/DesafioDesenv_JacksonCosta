@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using WebApp_Desafio_FrontEnd.Models;
+using WebApp_Desafio_Shared.ViewModels;
 
 namespace WebApp_Desafio_FrontEnd.Controllers
 {

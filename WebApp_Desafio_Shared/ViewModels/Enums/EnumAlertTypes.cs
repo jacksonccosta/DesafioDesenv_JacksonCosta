@@ -1,6 +1,6 @@
-﻿namespace WebApp_Desafio_API.ViewModels.Enums
+﻿namespace WebApp_Desafio_Shared.ViewModels.Enums
 {
-    public enum  AlertTypes
+    public enum AlertTypes
     {
         warning,
         error,
