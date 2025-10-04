@@ -1,4 +1,5 @@
 # Desafio de Desenvolvimento .NET - Solução Refatorada
+### Jackson Costa
 
 ## 1. Resumo do Projeto
 
