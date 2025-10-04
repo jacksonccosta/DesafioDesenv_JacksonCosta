@@ -40,11 +40,11 @@
             data: chamado,
             success: function (result) {
                 Swal.fire({
-                    type: result.type,
-                    title: result.title,
-                    text: result.message,
+                    type: result.Type,
+                    title: result.Title,
+                    text: result.Message,
                 }).then(function () {
-                    window.location.href = config.contextPath + result.controller + '/' + result.action;
+                    window.location.href = config.contextPath + result.Controller + '/' + result.Action;
                 });
             },
             error: function (result) {
