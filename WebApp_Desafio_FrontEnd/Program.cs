@@ -1,12 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using SQLitePCL;
 
 namespace WebApp_Desafio_FrontEnd
 {
@@ -14,6 +8,8 @@ namespace WebApp_Desafio_FrontEnd
     {
         public static void Main(string[] args)
         {
+            Batteries_V2.Init();
+
             CreateWebHostBuilder(args).Build().Run();
         }
 

@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Microsoft.Data.Sqlite;
+using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
-
 using WebApp_Desafio_BackEnd.Models;
 
 namespace WebApp_Desafio_BackEnd.DataAccess
@@ -14,9 +13,8 @@ namespace WebApp_Desafio_BackEnd.DataAccess
 
         public IEnumerable<Chamado> ListarChamados()
         {
-            IList<Chamado> lstChamados = new List<Chamado>();
-
-            using (var dbConnection = new SQLiteConnection(CONNECTION_STRING))
+            var lstChamados = new List<Chamado>();
+            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
             {
                 dbConnection.Open();
                 using (var dbCommand = dbConnection.CreateCommand())
@@ -41,7 +39,7 @@ namespace WebApp_Desafio_BackEnd.DataAccess
         public Chamado ObterChamado(int idChamado)
         {
             Chamado chamado = null;
-            using (var dbConnection = new SQLiteConnection(CONNECTION_STRING))
+            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
             {
                 dbConnection.Open();
                 using (var dbCommand = dbConnection.CreateCommand())
@@ -52,7 +50,6 @@ namespace WebApp_Desafio_BackEnd.DataAccess
                         "INNER JOIN departamentos d ON c.IdDepartamento = d.ID " +
                         "WHERE c.ID = @idChamado";
 
-                    // CORREÇÃO DE SQL INJECTION
                     dbCommand.Parameters.AddWithValue("@idChamado", idChamado);
 
                     using (var dataReader = dbCommand.ExecuteReader())
@@ -70,7 +67,7 @@ namespace WebApp_Desafio_BackEnd.DataAccess
         public bool GravarChamado(Chamado chamado)
         {
             int regsAfetados = 0;
-            using (var dbConnection = new SQLiteConnection(CONNECTION_STRING))
+            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
             {
                 dbConnection.Open();
                 using (var dbCommand = dbConnection.CreateCommand())
@@ -103,31 +100,28 @@ namespace WebApp_Desafio_BackEnd.DataAccess
         public bool ExcluirChamado(int idChamado)
         {
             int regsAfetados = 0;
-            using (var dbConnection = new SQLiteConnection(CONNECTION_STRING))
+            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
             {
                 dbConnection.Open();
                 using (var dbCommand = dbConnection.CreateCommand())
                 {
                     dbCommand.CommandText = "DELETE FROM chamados WHERE ID = @idChamado";
-
-                    // CORREÇÃO DE SQL INJECTION
                     dbCommand.Parameters.AddWithValue("@idChamado", idChamado);
-
                     regsAfetados = dbCommand.ExecuteNonQuery();
                 }
             }
             return (regsAfetados > 0);
         }
 
-        private Chamado MapToChamado(SQLiteDataReader dataReader)
+        private Chamado MapToChamado(SqliteDataReader dataReader)
         {
             var chamado = new Chamado();
-            if (!dataReader.IsDBNull(0)) chamado.ID = dataReader.GetInt32(0);
-            if (!dataReader.IsDBNull(1)) chamado.Assunto = dataReader.GetString(1);
-            if (!dataReader.IsDBNull(2)) chamado.Solicitante = dataReader.GetString(2);
-            if (!dataReader.IsDBNull(3)) chamado.IdDepartamento = dataReader.GetInt32(3);
-            if (!dataReader.IsDBNull(4)) chamado.Departamento = dataReader.GetString(4);
-            if (!dataReader.IsDBNull(5)) chamado.DataAbertura = DateTime.Parse(dataReader.GetString(5));
+            chamado.ID = dataReader.GetInt32(0);
+            chamado.Assunto = dataReader.GetString(1);
+            chamado.Solicitante = dataReader.GetString(2);
+            chamado.IdDepartamento = dataReader.GetInt32(3);
+            chamado.Departamento = dataReader.GetString(4);
+            chamado.DataAbertura = DateTime.Parse(dataReader.GetString(5));
             return chamado;
         }
     }
