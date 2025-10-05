@@ -1,60 +1,63 @@
-# Desafio de Desenvolvimento .NET - Solução Refatorada
+# Desafio de Desenvolvimento .NET - Solução Refatorada e Modernizada
 ### Jackson Costa
 
 ## 1. Resumo do Projeto
 
-> Este repositório contém a solução para o "Desafio de Desenvolvimento WebApp", um sistema simples de registro de chamados. O projeto original, que possuía bugs e oportunidades de melhoria, foi completamente refatorado para atender a todos os requisitos solicitados, com foco na aplicação de boas práticas de arquitetura de software, princípios SOLID e padrões de projeto modernos do ecossistema .NET.
->
+> Este repositório contém a solução para o "Desafio de Desenvolvimento WebApp", um sistema simples de registro de chamados. O projeto original foi completamente refatorado para atender a todos os requisitos solicitados e, mais importante, para demonstrar a aplicação de boas práticas de arquitetura de software, princípios SOLID e padrões de projeto modernos do ecossistema .NET, elevando a solução a um nível de especialista.
 
 ## 2. Arquitetura e Padrões Aplicados
 
-A arquitetura original, baseada em chamadas diretas a camadas de negócio (BLL), foi substituída por uma abordagem mais moderna e desacoplada, fundamentada nos seguintes padrões e princípios:
+A arquitetura original foi substituída por uma abordagem moderna, desacoplada e robusta, fundamentada nos seguintes padrões e princípios:
 
-### a. CQRS (Command Query Responsibility Segregation)
+### a. CQRS (Command Query Responsibility Segregation) com Padrão Mediator
 
-A lógica de negócio foi dividida em duas responsabilidades distintas:
+A lógica de negócio foi dividida em **Commands** (operações de escrita que alteram o estado) e **Queries** (operações de leitura que não alteram o estado). Utilizamos a biblioteca `MediatR` para orquestrar esse fluxo, garantindo que os `Controllers` apenas criem e enviem requisições, sem conhecer a implementação da lógica de negócio. Isso promove baixo acoplamento e adere ao Princípio da Responsabilidade Única (SRP).
 
-* **Commands**: Operações que alteram o estado do sistema (Criar, Atualizar, Excluir).
-* **Queries**: Operações que apenas leem o estado do sistema (Listar, Obter por ID).
+### b. Injeção de Dependência (DI) e Inversão de Controle (IoC)
 
-Essa separação, implementada na camada de `WebApp_Desafio_BackEnd`, torna o código mais claro, focado e permite otimizações específicas para leitura e escrita.
+Removemos todas as instanciações diretas de dependências. Todas as camadas (`Controller`, `Handlers`, `DALs`) agora recebem suas dependências (como `IMediator`, `ApplicationDbContext`, etc.) através de injeção de dependência no construtor. Isso adere ao **Princípio da Inversão de Dependência (DIP)**, tornando o código modular, desacoplado e altamente testável.
 
-### b. Padrão Mediator
+### c. Middleware e Pipeline Behaviors do MediatR
 
-Utilizamos a biblioteca `MediatR` para implementar o padrão Mediator. Os Controllers (camada de apresentação) não conhecem mais a implementação da lógica de negócio. Em vez disso, eles simplesmente criam e enviam objetos de `Command` ou `Query`. O MediatR se encarrega de encontrar e invocar o `Handler` correspondente, promovendo um baixo acoplamento e aderindo ao Princípio da Responsabilidade Única (SRP).
+Implementamos padrões avançados para centralizar responsabilidades transversais (cross-cutting concerns):
+* **Middleware de Tratamento de Exceções:** Um middleware global agora captura todas as exceções não tratadas da aplicação, registrando o erro e retornando uma resposta JSON padronizada e amigável. Isso eliminou completamente os blocos `try-catch` repetitivos dos `Controllers`.
+* **Pipeline Behavior para Validação:** Criamos um pipeline no MediatR que intercepta todos os `Commands` recebidos. Usando `FluentValidation`, ele executa as regras de validação associadas antes que o `Command` chegue ao seu `Handler`, garantindo que a lógica de negócio só execute com dados válidos.
 
-### c. Injeção de Dependência (Dependency Injection - DI)
+### d. Camada de Acesso a Dados com EF Core (Padrão Repositório)
 
-Removemos todas as instanciações diretas (ex: `new ChamadosBLL()`). Agora, todas as dependências, como o `IMediator`, são injetadas nos construtores dos controllers pelo container de DI nativo do ASP.NET Core. A `ConnectionString` também é gerenciada pelo DI, sendo lida do `appsettings.json`.
+A camada de acesso a dados foi completamente modernizada:
+* **ADO.NET foi substituído por Entity Framework Core**, o ORM (Object-Relational Mapper) padrão do ecossistema .NET.
+* A persistência agora é gerenciada por um `DbContext` (`ApplicationDbContext`), e as operações de banco de dados são realizadas de forma **assíncrona (`async/await`)**.
+* O esquema do banco de dados é gerenciado via **EF Core Migrations**, permitindo o versionamento e a evolução da estrutura do banco de dados a partir do código.
 
-### d. Biblioteca Compartilhada (Shared Library)
+## 3. Principais Melhorias e Refatorações de Nível Especialista
 
-Para evitar a duplicação de código e garantir uma única fonte de verdade para os modelos de dados de transferência (ViewModels/DTOs), foi criado o projeto `WebApp_Desafio_Shared` (.NET Standard 2.0). Este projeto é referenciado tanto pelo `WebApp_Desafio_FrontEnd` quanto pelo `WebApp_Desafio_API`, seguindo o Princípio Don't Repeat Yourself (DRY).
+Durante o processo, as seguintes melhorias foram implementadas:
 
-## 3. Requisitos do Desafio Implementados
+* **Modernização da Camada de Dados:** Substituição completa do ADO.NET manual pelo **Entity Framework Core**, com uso de `DbContext`, `Migrations` e consultas assíncronas com LINQ. Isso reduziu drasticamente o código boilerplate e aumentou a segurança e a manutenibilidade.
 
-Todos os requisitos obrigatórios e extras do desafio foram cumpridos.
+* **Centralização de Erros e Validação:** Implementação de um **Middleware de Erros** e de um **Pipeline de Validação** com MediatR e FluentValidation. Essa mudança limpou os `Controllers` e `Handlers`, centralizando responsabilidades e tornando o código mais limpo e aderente ao princípio DRY (Don't Repeat Yourself).
 
-### ✅ Requisitos Obrigatórios
+* **Refatoração do Modelo de Domínio:** A entidade `Chamado` foi corrigida para usar **Propriedades de Navegação** do EF Core (`public Solicitante Solicitante { get; set; }`) em vez de propriedades `string`, representando corretamente os relacionamentos do banco de dados e simplificando as consultas com o uso do `.Include()`.
 
-* **CRUD de Departamentos:** Implementado do zero utilizando a nova arquitetura CQRS, com Commands para Gravar/Excluir e Queries para Listar/Obter.
-* **Relatório de Departamentos:** Criado o endpoint e a lógica para gerar o relatório `.rdlc`, configurando a propriedade do arquivo para ser copiado durante o build.
-* **Correção de Erros em Chamados:** O principal bug corrigido foi uma grave vulnerabilidade de SQL Injection nos métodos de `ObterChamado` e `ExcluirChamado`. Todas as queries foram parametrizadas para garantir a segurança.
-* **Duplo-Clique para Editar:** Implementado nas telas de listagem de Chamados e Departamentos via JavaScript (jQuery), melhorando a usabilidade da interface.
-* **Validação de Entrada:** Implementada utilizando a biblioteca `FluentValidation`. As regras de validação (tamanho máximo, campos obrigatórios) foram desacopladas em classes de `Validator` específicas para cada `Command`.
+* **Unidade de Trabalho nos Command Handlers:** Os `CommandHandlers` (ex: `GravarChamadoCommandHandler`) foram refatorados para gerenciar sua própria **Unidade de Trabalho** com transações explícitas do `DbContext`. Isso resolveu problemas de concorrência com o SQLite (`database is locked`) e garantiu a atomicidade das operações de escrita.
 
-### ⭐ Desafio Extra
+* **Estabilização do Projeto e Dependências:** Foi realizado um diagnóstico profundo para corrigir instabilidades de compilação e execução, envolvendo:
+    * Alinhamento das versões do .NET (`Target Framework`) em todos os projetos.
+    * Resolução de conflitos severos de versões de pacotes NuGet (como `FluentValidation`, `Microsoft.Data.Sqlite`, `Microsoft.AspNetCore.Mvc.Testing`), garantindo a compatibilidade total com o .NET Core 2.1.
+    * Correção dos arquivos de projeto (`.csproj`) para um formato moderno e consistente.
 
-* **Validação de Regra de Negócio (Data Retroativa):** A regra para não permitir a criação de chamados com data retroativa foi implementada no `GravarChamadoCommandHandler`. A lógica foi refinada para ser aplicada apenas na criação (`ID == 0`), permitindo a edição de chamados antigos sem problemas.
-* **Normalização do Banco de Dados (Tabela Solicitantes):** Em vez de um simples autocomplete em um campo de texto, a solução foi elevada a um nível profissional. Foi criada uma nova tabela `solicitantes` no banco de dados, e a tabela `chamados` foi refatorada para usar uma chave estrangeira (`IdSolicitante`). Toda a aplicação foi ajustada para essa nova estrutura de dados normalizada, garantindo consistência e performance.
+* **Correções no Front-End:** Resolução de erros de JavaScript, como o erro **404 para o arquivo `utils.js`**, e implementação da **localização para português (pt-BR)** das mensagens de validação do jQuery Validate.
 
-#### Outras Melhorias Pertinentes:
+## 4. Testes Unitários Aprimorados
 
-* **Migração do Provedor SQLite:** A aplicação foi migrada do pacote legado `System.Data.SQLite` para o moderno e recomendado `Microsoft.Data.Sqlite`.
-* **Resolução de Incompatibilidade de Arquitetura (x86/x64):** A migração para `Microsoft.Data.Sqlite` resolveu de forma definitiva o erro `DllNotFoundException: SQLite.Interop.dll`, permitindo que a aplicação rode em `AnyCPU` sem a necessidade de forçar a arquitetura para `x86`.
-* **Centralização de Configuração e ViewModels:** A `ConnectionString` foi movida para o `appsettings.json` e os ViewModels foram centralizados no projeto `WebApp_Desafio_Shared`.
+A suíte de testes unitários foi refatorada e aprimorada para se alinhar à nova arquitetura.
 
-## 4. Como Executar o Projeto
+* **Habilitação para Testes com DI:** A introdução de interfaces e a aplicação correta da Injeção de Dependência foram cruciais para tornar os `Handlers` testáveis.
+* **Evolução dos Testes de Commands:** Os testes para `CommandHandlers` (que realizam escrita no banco) foram evoluídos. Em vez de apenas simular ("mocar") as interfaces DAL, eles agora utilizam o **Provedor de Banco de Dados Em Memória do EF Core**. Essa abordagem permite testes de unidade mais robustos e confiáveis, que validam a lógica do handler em conjunto com a interação real do EF Core.
+* **Tecnologias Utilizadas:** A suíte de testes foi construída utilizando um conjunto de ferramentas padrão e modernas no ecossistema .NET: **xUnit**, **Moq** e **FluentAssertions**.
+
+## 5. Como Executar o Projeto
 
 ### Pré-requisitos
 
@@ -66,43 +69,11 @@ Todos os requisitos obrigatórios e extras do desafio foram cumpridos.
 1.  Clone o repositório.
 2.  Abra o arquivo `WebApp_Desafio_Desenvolvimento.sln` no Visual Studio.
 3.  O Visual Studio deve restaurar os pacotes NuGet automaticamente. Caso contrário, clique com o botão direito na solução e selecione "Restore NuGet Packages".
-4.  Defina o projeto `WebApp_Desafio_FrontEnd` como projeto de inicialização (Startup Project).
-5.  Pressione `F5` ou clique no botão "Run" para iniciar a aplicação.
+4.  **Para criar o banco de dados pela primeira vez:**
+    * Abra o **Package Manager Console** (`Tools > NuGet Package Manager > Package Manager Console`).
+    * Selecione `WebApp-Desafio-FrontEnd` como o "Default project".
+    * Execute o comando: `Update-Database`
+5.  Defina o projeto `WebApp_Desafio_FrontEnd` como projeto de inicialização (Startup Project).
+6.  Pressione `F5` para iniciar a aplicação.
 
-> O banco de dados (`DesafioDB.db`) está incluído no projeto e configurado para ser copiado para o diretório de saída, não sendo necessária nenhuma configuração adicional.
-
-## 5. Estrutura da Solução
-
-* **WebApp\_Desafio\_FrontEnd:** Projeto principal da aplicação web (ASP.NET Core 2.1 MVC). Contém os Controllers, Views e arquivos estáticos.
-* **WebApp\_Desafio\_API:** Projeto secundário de API (ASP.NET Core 2.1). Foi refatorado para também utilizar a arquitetura CQRS/MediatR.
-* **WebApp\_Desafio\_BackEnd:** O "coração" da aplicação (.NET Framework). Contém as implementações dos Handlers do CQRS e a camada de acesso a dados (DAL).
-* **WebApp\_Desafio\_Shared:** Biblioteca de classes compartilhada (.NET Standard 2.0). Contém todos os ViewModels, DTOs e Enums usados pelos outros projetos.
-* **WinForm\_Desafio\_Reports:** Projeto auxiliar (Windows Forms) utilizado apenas para o design visual dos relatórios `.rdlc`.
-
-## 6. Refatoração adicional para inclusão de Testes Unitários
-
-Para garantir a qualidade, a robustez e a manutenibilidade do código do back-end, foi implementada uma suíte de testes unitários. O principal objetivo desses testes é validar a camada de lógica de negócio (CQRS Handlers) de forma isolada, garantindo que as regras e os fluxos de dados se comportem como o esperado.
-
-#### Refatoração para Habilitar Testes
-
-O código possuía um acoplamento forte entre a camada de lógica e a camada de acesso a dados. Os `CommandHandlers` e `QueryHandlers` instanciam suas dependências `DAL` diretamente em seus construtores (usando `new ChamadosDAL(...)`). Isso impede a realização de testes unitários, pois a lógica de negócio não pode ser testada sem uma conexão real com o banco de dados.
-
-Para resolver isso e habilitar a criação de testes, o padrão de **Injeção de Dependência (Dependency Injection - DI)** foi aplicado. As seguintes alterações foram realizadas:
-
-1.  **Criação de Interfaces para o Acesso a Dados**: Foram criadas interfaces para cada classe `DAL` (por exemplo, `IChamadosDAL`, `ISolicitantesDAL`). Essas interfaces servem como um "contrato", definindo os métodos que a camada de dados deve oferecer, sem acoplar o código à sua implementação concreta.
-
-2.  **Inversão de Controle (IoC)**: Os construtores dos `CommandHandlers` e `QueryHandlers` foram modificados para receberem as interfaces como parâmetros, em vez de criarem as instâncias `DAL` diretamente. Dessa forma, a responsabilidade de criar e fornecer as dependências foi "invertida" e transferida para um contêiner de DI.
-
-3.  **Registro no Contêiner de DI**: Na classe `Startup.cs` do projeto Front-End, as interfaces e suas respectivas implementações concretas foram registradas no contêiner de injeção de dependência do ASP.NET Core. Isso garante que, quando a aplicação estiver rodando, o contêiner saiba como resolver as dependências automaticamente.
-
-Essa refatoração não apenas permite a criação de testes unitários, mas também torna o código mais limpo, desacoplado e aderente aos princípios de design de software S.O.L.I.D.
-
-#### Tecnologias Utilizadas nos testes unitários
-
-A suíte de testes foi construída utilizando um conjunto de ferramentas padrão e modernas no ecossistema .NET:
-
-* **xUnit**: O framework de testes utilizado para estruturar, executar e verificar os testes. É o padrão de fato para projetos .NET modernos, conhecido por sua simplicidade e poder.
-
-* **Moq**: Uma biblioteca de "mocking" popular e poderosa. Foi utilizada para criar implementações falsas ("mocks" ou "dublês") das interfaces `DAL`. Isso nos permite simular o comportamento da camada de acesso a dados (por exemplo, simular o retorno de um usuário do banco ou uma falha ao salvar) para que possamos testar a lógica do `Handler` em completo isolamento.
-
-* **FluentAssertions**: Uma biblioteca de asserção que torna a verificação dos resultados dos testes muito mais legível e expressiva. Em vez de usar `Assert.True(resultado)`, podemos escrever `resultado.Should().BeTrue()`, o que torna a intenção do teste mais clara.
+> O banco de dados (`desafio_dev_efcore.db`) é gerenciado pelo EF Core Migrations. A connection string está no `appsettings.json`.
