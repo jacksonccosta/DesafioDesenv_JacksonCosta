@@ -34,16 +34,9 @@ namespace WebApp_Desafio_FrontEnd.Controllers
         [HttpGet]
         public async Task<IActionResult> Datatable()
         {
-            try
-            {
-                var lstDepartamentos = await _mediator.Send(new GetAllDepartamentosQuery());
-                var dataTableVM = new DataTableAjaxViewModel() { data = lstDepartamentos };
-                return Ok(dataTableVM);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ResponseViewModel(ex));
-            }
+            var lstDepartamentos = await _mediator.Send(new GetAllDepartamentosQuery());
+            var dataTableVM = new DataTableAjaxViewModel() { data = lstDepartamentos };
+            return Ok(dataTableVM);
         }
 
         [HttpGet]
@@ -70,48 +63,28 @@ namespace WebApp_Desafio_FrontEnd.Controllers
         [HttpPost]
         public async Task<IActionResult> Cadastrar(DepartamentoViewModel departamentoVM)
         {
-            try
+            var command = new GravarDepartamentoCommand
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                    throw new ApplicationException(string.Join(" ", errors));
-                }
+                ID = departamentoVM.ID,
+                Descricao = departamentoVM.Descricao
+            };
 
-                var command = new GravarDepartamentoCommand
-                {
-                    ID = departamentoVM.ID,
-                    Descricao = departamentoVM.Descricao
-                };
+            var sucesso = await _mediator.Send(command);
 
-                var sucesso = await _mediator.Send(command);
+            if (sucesso)
+                return Ok(new ResponseViewModel("Sucesso!", "Departamento gravado com sucesso!", AlertTypes.success, "Departamentos", nameof(Listar)));
 
-                if (sucesso)
-                    return Ok(new ResponseViewModel("Sucesso!", "Departamento gravado com sucesso!", AlertTypes.success, "Departamentos", nameof(Listar)));
-                else
-                    throw new ApplicationException("Falha ao gravar o Departamento.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ResponseViewModel(ex));
-            }
+            throw new ApplicationException("Falha ao gravar o Departamento.");
         }
 
         [HttpDelete]
         public async Task<IActionResult> Excluir([FromRoute] int id)
         {
-            try
-            {
-                var sucesso = await _mediator.Send(new ExcluirDepartamentoCommand { Id = id });
-                if (sucesso)
-                    return Ok(new ResponseViewModel("Sucesso!", $"Departamento {id} excluído com sucesso!", AlertTypes.success));
-                else
-                    throw new ApplicationException($"Falha ao excluir o Departamento {id}.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ResponseViewModel(ex));
-            }
+            var sucesso = await _mediator.Send(new ExcluirDepartamentoCommand { Id = id });
+            if (sucesso)
+                return Ok(new ResponseViewModel("Sucesso!", $"Departamento {id} excluído com sucesso!", AlertTypes.success));
+
+            throw new ApplicationException($"Falha ao excluir o Departamento {id}.");
         }
 
         [HttpGet]

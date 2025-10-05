@@ -8,19 +8,26 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Commands
 {
     public class ExcluirChamadoCommandHandler : IRequestHandler<ExcluirChamadoCommand, bool>
     {
-        private readonly IChamadosDAL _chamadosDal;
+        private readonly ApplicationDbContext _context;
 
-        public ExcluirChamadoCommandHandler(IChamadosDAL chamadosDal)
+        public ExcluirChamadoCommandHandler(ApplicationDbContext context)
         {
-            _chamadosDal = chamadosDal ?? throw new ArgumentNullException(nameof(chamadosDal));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task<bool> Handle(ExcluirChamadoCommand request, CancellationToken cancellationToken)
         {
-            if (request.Id <= 0)
-                throw new System.ArgumentException("O ID do chamado é inválido.");
 
-            return await _chamadosDal.ExcluirChamado(request.Id);
+            var chamado = await _context.Chamados.FindAsync(new object[] { request.Id }, cancellationToken);
+
+            if (chamado == null)
+            {
+                return false;
+            }
+
+            _context.Chamados.Remove(chamado);
+
+            return await _context.SaveChangesAsync(cancellationToken) > 0;
         }
     }
 }

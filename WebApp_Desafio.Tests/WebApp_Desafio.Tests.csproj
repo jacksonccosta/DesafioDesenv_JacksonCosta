@@ -8,8 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.7.1" />
+    <PackageReference Include="FluentValidation" Version="8.6.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,6 +26,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WebApp_Desafio_BackEnd\WebApp_Desafio_BackEnd.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CQRS\Departamentos\Queries\" />
   </ItemGroup>
 
 </Project>

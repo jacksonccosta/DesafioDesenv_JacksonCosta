@@ -50,7 +50,6 @@
     $('#btnSalvar').click(function () {
 
         if ($('#form').valid() != true) {
-            FormularioInvalidoAlert();
             return;
         }
 
@@ -72,8 +71,13 @@
             },
             error: function (result) {
                 let errorResponse = result.responseJSON;
+                let errorMessage = "Ocorreu um erro ao processar sua solicitação.";
+                if (errorResponse && errorResponse.Message) {
+                    errorMessage = errorResponse.Message;
+                }
+
                 Swal.fire({
-                    text: errorResponse.message,
+                    text: errorMessage,
                     confirmButtonText: 'OK',
                     icon: 'error'
                 });
