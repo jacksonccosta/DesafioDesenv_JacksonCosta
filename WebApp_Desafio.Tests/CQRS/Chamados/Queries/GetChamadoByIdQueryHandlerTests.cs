@@ -28,7 +28,7 @@ namespace WebApp_Desafio_BackEnd.Tests.CQRS.Chamados.Queries
             var query = new GetChamadoByIdQuery { Id = 1 };
             var chamadoEsperado = new Chamado { ID = 1, Assunto = "Chamado Existente" };
 
-            _chamadosDalMock.Setup(d => d.ObterChamado(query.Id)).Returns(chamadoEsperado);
+            _chamadosDalMock.Setup(d => d.ObterChamado(query.Id)).ReturnsAsync(chamadoEsperado);
 
             // Act
             var result = await _handler.Handle(query, CancellationToken.None);
@@ -44,7 +44,7 @@ namespace WebApp_Desafio_BackEnd.Tests.CQRS.Chamados.Queries
         {
             // Arrange
             var query = new GetChamadoByIdQuery { Id = 999 };
-            _chamadosDalMock.Setup(d => d.ObterChamado(query.Id)).Returns((Chamado)null);
+            _chamadosDalMock.Setup(d => d.ObterChamado(query.Id)).ReturnsAsync((Chamado)null);
 
             // Act
             Func<Task> act = async () => await _handler.Handle(query, CancellationToken.None);

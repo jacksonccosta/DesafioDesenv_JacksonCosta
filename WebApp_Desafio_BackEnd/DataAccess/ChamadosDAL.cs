@@ -1,132 +1,73 @@
-﻿using Microsoft.Data.Sqlite;
-using System;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.Models;
 
 namespace WebApp_Desafio_BackEnd.DataAccess
 {
-    public class ChamadosDAL : BaseDAL, IChamadosDAL
+    public class ChamadosDAL : IChamadosDAL
     {
-        private const string ANSI_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+        private readonly ApplicationDbContext _context;
 
-        public ChamadosDAL(string connectionString) : base(connectionString) { }
-
-        public IEnumerable<Chamado> ListarChamados()
+        public ChamadosDAL(ApplicationDbContext context)
         {
-            var lstChamados = new List<Chamado>();
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
-            {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    dbCommand.CommandText =
-                        "SELECT c.ID, c.Assunto, s.Nome AS Solicitante, c.IdDepartamento, d.Descricao AS Departamento, c.DataAbertura, c.IdSolicitante " +
-                        "FROM chamados c " +
-                        "INNER JOIN departamentos d ON c.IdDepartamento = d.ID " +
-                        "LEFT JOIN solicitantes s ON c.IdSolicitante = s.ID";
-
-                    using (var dataReader = dbCommand.ExecuteReader())
-                    {
-                        while (dataReader.Read())
-                        {
-                            lstChamados.Add(MapToChamado(dataReader));
-                        }
-                    }
-                }
-            }
-            return lstChamados;
+            _context = context;
         }
 
-        public Chamado ObterChamado(int idChamado)
+        public async Task<IEnumerable<Chamado>> ListarChamados()
         {
-            Chamado chamado = null;
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
-            {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    dbCommand.CommandText =
-                        "SELECT c.ID, c.Assunto, s.Nome AS Solicitante, c.IdDepartamento, d.Descricao AS Departamento, c.DataAbertura, c.IdSolicitante " +
-                        "FROM chamados c " +
-                        "INNER JOIN departamentos d ON c.IdDepartamento = d.ID " +
-                        "LEFT JOIN solicitantes s ON c.IdSolicitante = s.ID " +
-                        "WHERE c.ID = @idChamado";
-
-                    dbCommand.Parameters.AddWithValue("@idChamado", idChamado);
-
-                    using (var dataReader = dbCommand.ExecuteReader())
-                    {
-                        if (dataReader.Read())
-                        {
-                            chamado = MapToChamado(dataReader);
-                        }
-                    }
-                }
-            }
-            return chamado;
+            return await _context.Chamados
+                .AsNoTracking()
+                .Include(c => c.Solicitante)
+                .Include(c => c.Departamento)
+                .OrderByDescending(c => c.ID)
+                .ToListAsync();
         }
 
-        public bool GravarChamado(Chamado chamado)
+        public async Task<Chamado> ObterChamado(int idChamado)
         {
-            int regsAfetados = 0;
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
-            {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    if (chamado.ID == 0)
-                    {
-                        dbCommand.CommandText =
-                            "INSERT INTO chamados (Assunto, IdSolicitante, Solicitante, IdDepartamento, DataAbertura) " +
-                            "VALUES (@Assunto, @IdSolicitante, @Solicitante, @IdDepartamento, @DataAbertura)";
-                    }
-                    else
-                    {
-                        dbCommand.CommandText =
-                            "UPDATE chamados SET Assunto=@Assunto, IdSolicitante=@IdSolicitante, Solicitante=@Solicitante, IdDepartamento=@IdDepartamento, DataAbertura=@DataAbertura " +
-                            "WHERE ID=@ID";
-                        dbCommand.Parameters.AddWithValue("@ID", chamado.ID);
-                    }
-
-                    dbCommand.Parameters.AddWithValue("@Assunto", chamado.Assunto);
-                    dbCommand.Parameters.AddWithValue("@IdSolicitante", chamado.IdSolicitante);
-                    dbCommand.Parameters.AddWithValue("@Solicitante", chamado.Solicitante);
-                    dbCommand.Parameters.AddWithValue("@IdDepartamento", chamado.IdDepartamento);
-                    dbCommand.Parameters.AddWithValue("@DataAbertura", chamado.DataAbertura.ToString("yyyy-MM-dd HH:mm:ss"));
-
-                    regsAfetados = dbCommand.ExecuteNonQuery();
-                }
-            }
-            return (regsAfetados > 0);
+            return await _context.Chamados
+                .AsNoTracking()
+                .Include(c => c.Solicitante)
+                .Include(c => c.Departamento)
+                .FirstOrDefaultAsync(c => c.ID == idChamado);
         }
 
-        public bool ExcluirChamado(int idChamado)
+        public async Task<bool> GravarChamado(Chamado chamado)
         {
-            int regsAfetados = 0;
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
+            if (chamado.ID > 0)
             {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
+                var chamadoExistente = await _context.Chamados.FindAsync(chamado.ID);
+                if (chamadoExistente == null)
                 {
-                    dbCommand.CommandText = "DELETE FROM chamados WHERE ID = @idChamado";
-                    dbCommand.Parameters.AddWithValue("@idChamado", idChamado);
-                    regsAfetados = dbCommand.ExecuteNonQuery();
+                    return false;
                 }
+
+                chamadoExistente.Assunto = chamado.Assunto;
+                chamadoExistente.IdSolicitante = chamado.IdSolicitante;
+                chamadoExistente.IdDepartamento = chamado.IdDepartamento;
+                chamadoExistente.DataAbertura = chamado.DataAbertura;
+
+                _context.Chamados.Update(chamadoExistente);
             }
-            return (regsAfetados > 0);
+            else
+            {
+                _context.Chamados.Add(chamado);
+            }
+            return await _context.SaveChangesAsync() > 0;
         }
 
-        private Chamado MapToChamado(SqliteDataReader dataReader)
+        public async Task<bool> ExcluirChamado(int idChamado)
         {
-            var chamado = new Chamado();
-            chamado.ID = dataReader.GetInt32(0);
-            chamado.Assunto = dataReader.GetString(1);
-            chamado.Solicitante = dataReader.IsDBNull(2) ? "" : dataReader.GetString(2);
-            chamado.IdDepartamento = dataReader.GetInt32(3);
-            chamado.Departamento = dataReader.GetString(4);
-            chamado.DataAbertura = DateTime.Parse(dataReader.GetString(5));
-            chamado.IdSolicitante = dataReader.IsDBNull(6) ? 0 : dataReader.GetInt32(6);
-            return chamado;
+            var chamado = await _context.Chamados.FindAsync(idChamado);
+            if (chamado == null)
+            {
+                return false;
+            }
+
+            _context.Chamados.Remove(chamado);
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

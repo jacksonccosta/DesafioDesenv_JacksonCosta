@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,17 +16,17 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Queries
             _chamadosDal = chamadosDal ?? throw new ArgumentNullException(nameof(chamadosDal));
         }
 
-        public Task<Chamado> Handle(GetChamadoByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Chamado> Handle(GetChamadoByIdQuery request, CancellationToken cancellationToken)
         {
             if (request.Id <= 0)
                 throw new ArgumentException("O ID do chamado é inválido.");
 
-            var chamado = _chamadosDal.ObterChamado(request.Id);
+            var chamado = await _chamadosDal.ObterChamado(request.Id);
 
             if (chamado == null)
                 throw new ApplicationException("Chamado não encontrado.");
 
-            return Task.FromResult(chamado);
+            return chamado;
         }
     }
 }

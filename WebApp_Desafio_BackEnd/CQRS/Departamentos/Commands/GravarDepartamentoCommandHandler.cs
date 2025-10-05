@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.Extensions.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.DataAccess;
@@ -16,7 +15,7 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands
             _departamentosDal = departamentosDal ?? throw new System.ArgumentNullException(nameof(departamentosDal));
         }
 
-        public Task<bool> Handle(GravarDepartamentoCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(GravarDepartamentoCommand request, CancellationToken cancellationToken)
         {
             var departamento = new Departamento
             {
@@ -24,8 +23,7 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands
                 Descricao = request.Descricao
             };
 
-            var result = _departamentosDal.GravarDepartamento(departamento);
-            return Task.FromResult(result);
+            return await _departamentosDal.GravarDepartamento(departamento);
         }
     }
 }

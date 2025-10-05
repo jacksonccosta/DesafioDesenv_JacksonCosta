@@ -1,91 +1,44 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.Models;
 
 namespace WebApp_Desafio_BackEnd.DataAccess
 {
-    public class SolicitantesDAL : BaseDAL, ISolicitantesDAL
+    public class SolicitantesDAL : ISolicitantesDAL
     {
-        public SolicitantesDAL(string connectionString) : base(connectionString) { }
+        private readonly ApplicationDbContext _context;
 
-        public Solicitante ObterSolicitante(int idSolicitante)
+        public SolicitantesDAL(ApplicationDbContext context)
         {
-            Solicitante solicitante = null;
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
-            {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    dbCommand.CommandText = "SELECT ID, Nome FROM solicitantes WHERE ID = @idSolicitante";
-                    dbCommand.Parameters.AddWithValue("@idSolicitante", idSolicitante);
-
-                    using (var dataReader = dbCommand.ExecuteReader())
-                    {
-                        if (dataReader.Read())
-                        {
-                            solicitante = new Solicitante
-                            {
-                                ID = dataReader.GetInt32(0),
-                                Nome = dataReader.GetString(1)
-                            };
-                        }
-                    }
-                }
-            }
-            return solicitante;
+            _context = context;
         }
 
-        public IEnumerable<Solicitante> SearchSolicitantes(string termo)
+        public async Task<Solicitante> ObterSolicitante(int idSolicitante)
         {
-            var lista = new List<Solicitante>();
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
-            {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    // Consulta modificada para ser case-insensitive (não sensível a maiúsculas/minúsculas)
-                    dbCommand.CommandText = "SELECT ID, Nome FROM solicitantes WHERE UPPER(Nome) LIKE UPPER(@termo) ORDER BY Nome";
-                    dbCommand.Parameters.AddWithValue("@termo", $"%{termo}%");
-
-                    using (var dataReader = dbCommand.ExecuteReader())
-                    {
-                        while (dataReader.Read())
-                        {
-                            lista.Add(new Solicitante
-                            {
-                                ID = dataReader.GetInt32(0),
-                                Nome = dataReader.GetString(1)
-                            });
-                        }
-                    }
-                }
-            }
-            return lista;
+            return await _context.Solicitantes.FindAsync(idSolicitante);
         }
 
-        public IEnumerable<Solicitante> ListarSolicitantes()
+        public async Task<IEnumerable<Solicitante>> SearchSolicitantes(string termo)
         {
-            var lista = new List<Solicitante>();
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
+            if (string.IsNullOrWhiteSpace(termo))
             {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    dbCommand.CommandText = "SELECT ID, Nome FROM solicitantes ORDER BY Nome";
-                    using (var dataReader = dbCommand.ExecuteReader())
-                    {
-                        while (dataReader.Read())
-                        {
-                            lista.Add(new Solicitante
-                            {
-                                ID = dataReader.GetInt32(0),
-                                Nome = dataReader.GetString(1)
-                            });
-                        }
-                    }
-                }
+                return new List<Solicitante>();
             }
-            return lista;
+
+            var termoUpper = termo.ToUpper();
+            return await _context.Solicitantes
+                                 .Where(s => s.Nome.ToUpper().Contains(termoUpper))
+                                 .OrderBy(s => s.Nome)
+                                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Solicitante>> ListarSolicitantes()
+        {
+            return await _context.Solicitantes
+                                 .OrderBy(s => s.Nome)
+                                 .ToListAsync();
         }
     }
 }

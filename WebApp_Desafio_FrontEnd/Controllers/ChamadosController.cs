@@ -42,9 +42,9 @@ namespace WebApp_Desafio_FrontEnd.Controllers
                 {
                     ID = c.ID,
                     Assunto = c.Assunto,
-                    Solicitante = c.Solicitante,
+                    Solicitante = c.Solicitante?.Nome,
                     IdDepartamento = c.IdDepartamento,
-                    Departamento = c.Departamento,
+                    Departamento = c.Departamento?.Descricao,
                     DataAbertura = c.DataAbertura
                 }).ToList();
 
@@ -79,8 +79,9 @@ namespace WebApp_Desafio_FrontEnd.Controllers
                 ID = chamado.ID,
                 Assunto = chamado.Assunto,
                 IdSolicitante = chamado.IdSolicitante,
-                Solicitante = chamado.Solicitante,
+                Solicitante = chamado.Solicitante?.Nome,
                 IdDepartamento = chamado.IdDepartamento,
+                Departamento = chamado.Departamento?.Descricao,
                 DataAbertura = chamado.DataAbertura
             };
 
@@ -90,6 +91,7 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
         }
 
+        #region Métodos Inalterados
         [HttpPost]
         public async Task<IActionResult> Cadastrar(ChamadoViewModel chamadoVM)
         {
@@ -147,15 +149,10 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             {
                 return Json(new List<object>());
             }
-
             var query = new SearchSolicitantesQuery { TermoBusca = term };
-            var solicitantesEncontrados = await _mediator.Send(query);
-
-            var resultadoJson = solicitantesEncontrados.Select(s => new { id = s.Id, text = s.Text });
-
-            return Json(resultadoJson);
+            var solicitantes = await _mediator.Send(query);
+            return Json(solicitantes.Select(s => new { id = s.Id, text = s.Text }));
         }
-
 
         [HttpGet]
         public async Task<IActionResult> Report()
@@ -167,10 +164,20 @@ namespace WebApp_Desafio_FrontEnd.Controllers
 
             var lstChamados = await _mediator.Send(new GetAllChamadosQuery());
 
-            localReport.AddDataSource("dsChamados", lstChamados);
+            var reportData = lstChamados.Select(c => new
+            {
+                c.ID,
+                c.Assunto,
+                Solicitante = c.Solicitante?.Nome,
+                Departamento = c.Departamento?.Descricao,
+                c.DataAbertura
+            }).ToList();
+
+            localReport.AddDataSource("dsChamados", reportData);
 
             var result = localReport.Execute(RenderType.Pdf);
             return File(result.MainStream, "application/pdf", "RelatorioChamados.pdf");
         }
+        #endregion
     }
 }

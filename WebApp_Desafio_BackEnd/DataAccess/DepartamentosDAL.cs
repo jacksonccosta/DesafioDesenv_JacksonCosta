@@ -1,103 +1,55 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.Models;
 
 namespace WebApp_Desafio_BackEnd.DataAccess
 {
-    public class DepartamentosDAL : BaseDAL, IDepartamentosDAL
+    public class DepartamentosDAL : IDepartamentosDAL
     {
-        public DepartamentosDAL(string connectionString) : base(connectionString) { }
+        private readonly ApplicationDbContext _context;
 
-        public IEnumerable<Departamento> ListarDepartamentos()
+        public DepartamentosDAL(ApplicationDbContext context)
         {
-            var lstDepartamentos = new List<Departamento>();
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
-            {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    dbCommand.CommandText = "SELECT ID, Descricao FROM departamentos ORDER BY Descricao";
-                    using (var dataReader = dbCommand.ExecuteReader())
-                    {
-                        while (dataReader.Read())
-                        {
-                            lstDepartamentos.Add(MapToDepartamento(dataReader));
-                        }
-                    }
-                }
-            }
-            return lstDepartamentos;
+            _context = context;
         }
 
-        public Departamento ObterDepartamento(int id)
+        public async Task<IEnumerable<Departamento>> ListarDepartamentos()
         {
-            Departamento departamento = null;
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
-            {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    dbCommand.CommandText = "SELECT ID, Descricao FROM departamentos WHERE ID = @ID";
-                    dbCommand.Parameters.AddWithValue("@ID", id);
-                    using (var dataReader = dbCommand.ExecuteReader())
-                    {
-                        if (dataReader.Read())
-                        {
-                            departamento = MapToDepartamento(dataReader);
-                        }
-                    }
-                }
-            }
-            return departamento;
+            return await _context.Departamentos
+                                 .OrderBy(d => d.Descricao)
+                                 .ToListAsync();
         }
 
-        public bool GravarDepartamento(Departamento departamento)
+        public async Task<Departamento> ObterDepartamento(int id)
         {
-            int regsAfetados = 0;
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
-            {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    if (departamento.ID == 0)
-                    {
-                        dbCommand.CommandText = "INSERT INTO departamentos (Descricao) VALUES (@Descricao)";
-                    }
-                    else
-                    {
-                        dbCommand.CommandText = "UPDATE departamentos SET Descricao=@Descricao WHERE ID=@ID";
-                        dbCommand.Parameters.AddWithValue("@ID", departamento.ID);
-                    }
-
-                    dbCommand.Parameters.AddWithValue("@Descricao", departamento.Descricao);
-                    regsAfetados = dbCommand.ExecuteNonQuery();
-                }
-            }
-            return regsAfetados > 0;
+            return await _context.Departamentos.FindAsync(id);
         }
 
-        public bool ExcluirDepartamento(int id)
+        public async Task<bool> GravarDepartamento(Departamento departamento)
         {
-            int regsAfetados = 0;
-            using (var dbConnection = new SqliteConnection(CONNECTION_STRING))
+            if (departamento.ID > 0)
             {
-                dbConnection.Open();
-                using (var dbCommand = dbConnection.CreateCommand())
-                {
-                    dbCommand.CommandText = "DELETE FROM departamentos WHERE ID = @ID";
-                    dbCommand.Parameters.AddWithValue("@ID", id);
-                    regsAfetados = dbCommand.ExecuteNonQuery();
-                }
+                _context.Departamentos.Update(departamento);
             }
-            return regsAfetados > 0;
+            else
+            {
+                _context.Departamentos.Add(departamento);
+            }
+            return await _context.SaveChangesAsync() > 0;
         }
 
-        private Departamento MapToDepartamento(SqliteDataReader dataReader)
+        public async Task<bool> ExcluirDepartamento(int id)
         {
-            var depto = new Departamento();
-            depto.ID = dataReader.GetInt32(0);
-            depto.Descricao = dataReader.GetString(1);
-            return depto;
+            var departamento = await _context.Departamentos.FindAsync(id);
+            if (departamento == null)
+            {
+                return false;
+            }
+
+            _context.Departamentos.Remove(departamento);
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

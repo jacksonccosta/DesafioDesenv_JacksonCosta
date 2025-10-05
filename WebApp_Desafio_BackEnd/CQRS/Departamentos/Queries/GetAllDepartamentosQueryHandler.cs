@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,17 +9,16 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries
 {
     public class GetAllDepartamentosQueryHandler : IRequestHandler<GetAllDepartamentosQuery, IEnumerable<Departamento>>
     {
-        private readonly DepartamentosDAL _dal;
+        private readonly IDepartamentosDAL _dal;
 
-        public GetAllDepartamentosQueryHandler(IConfiguration configuration)
+        public GetAllDepartamentosQueryHandler(IDepartamentosDAL dal)
         {
-            _dal = new DepartamentosDAL(configuration.GetConnectionString("DefaultConnection"));
+            _dal = dal;
         }
 
-        public Task<IEnumerable<Departamento>> Handle(GetAllDepartamentosQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<Departamento>> Handle(GetAllDepartamentosQuery request, CancellationToken cancellationToken)
         {
-            var result = _dal.ListarDepartamentos();
-            return Task.FromResult(result);
+            return await _dal.ListarDepartamentos();
         }
     }
 }

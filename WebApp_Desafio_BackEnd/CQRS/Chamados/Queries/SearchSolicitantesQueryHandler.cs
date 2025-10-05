@@ -16,9 +16,9 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Queries
             _dal = dal;
         }
 
-        public Task<IEnumerable<SolicitanteDTO>> Handle(SearchSolicitantesQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<SolicitanteDTO>> Handle(SearchSolicitantesQuery request, CancellationToken cancellationToken)
         {
-            var solicitantes = _dal.SearchSolicitantes(request.TermoBusca);
+            var solicitantes = await _dal.SearchSolicitantes(request.TermoBusca);
 
             var solicitantesDTO = solicitantes.Select(s => new SolicitanteDTO
             {
@@ -26,7 +26,7 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Queries
                 Text = s.Nome
             });
 
-            return Task.FromResult(solicitantesDTO);
+            return solicitantesDTO;
         }
     }
 }

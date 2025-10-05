@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -37,11 +39,13 @@ namespace WebApp_Desafio_FrontEnd
 
             var connectionString = Configuration.GetConnectionString("DefaultConnection");
 
-            
-            services.AddScoped<IChamadosDAL>(provider => new ChamadosDAL(connectionString));
-            services.AddScoped<ISolicitantesDAL>(provider => new SolicitantesDAL(connectionString));
-            services.AddScoped<IDepartamentosDAL>(provider => new DepartamentosDAL(connectionString));
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite(connectionString)
+            );
 
+            services.AddScoped<IChamadosDAL, ChamadosDAL>();
+            services.AddScoped<ISolicitantesDAL, SolicitantesDAL>();
+            services.AddScoped<IDepartamentosDAL, DepartamentosDAL>();
 
             services
                 .AddHttpContextAccessor()
