@@ -1,90 +1,92 @@
 ﻿@model WebApp_Desafio_Shared.ViewModels.ChamadoViewModel
-@using WebApp_Desafio_Shared.ViewModels
 
-<div class="row wrapper border-bottom white-bg page-heading header-title">
-    <div class="col-sm-12 col-md-6 text-left align-self-center order-md-0 order-12">
-        <h2>@ViewData["Title"]</h2>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-lg-12">
-        <form id="form" asp-action="Cadastrar" class="wizard-big" role="form" onsubmit="return false;">
-            <input type="hidden" asp-for="ID" />
-
-            <div class="row">
-                <div class="form-group col-lg-7 col-md-6 col-sm-12">
-                    <label class="form-label" asp-for="Assunto"></label>
-                    <input type="text" class="form-control" asp-for="Assunto">
-                    <span class="text-danger" asp-validation-for="Assunto"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="form-group col-lg-7 col-md-6 col-sm-12">
-                    <label class="form-label">Solicitante</label>
-                    <select class="form-control" asp-for="IdSolicitante">
-                        <option value="">Selecione um solicitante</option>
-                        @foreach (var item in ViewData["ListaSolicitantes"] as List<SolicitanteViewModel>)
-                        {
-                            <option value="@item.ID">@item.Nome</option>
-                        }
-                    </select>
-                    <span class="text-danger" asp-validation-for="IdSolicitante"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="form-group col-lg-5 col-md-4 col-sm-8">
-                    <label class="form-label" asp-for="Departamento"></label>
-                    <select class="form-control" asp-for="IdDepartamento">
-                        <option value="">Selecione um departamento</option>
-                        @foreach (var item in ViewData["ListaDepartamentos"] as List<DepartamentoViewModel>)
-                        {
-                            <option value="@item.ID">@item.Descricao</option>
-                        }
-                    </select>
-                    <span class="text-danger" asp-validation-for="IdDepartamento"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="form-group col-lg-3 col-md-3 col-sm-3">
-                    <label class="form-label" asp-for="DataAbertura"></label>
-                    <div class="input-group date" data-provide="datepicker">
-                        <input type="text" class="form-control" asp-for="DataAbertura" asp-format="{0:dd/MM/yyyy}" />
-                        <div class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </div>
-                    </div>
-                    <span class="text-danger" asp-validation-for="DataAbertura"></span>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="panel-body">
-    <fieldset>
-        <div class="row">
-            <div class="form-group col-sm-12 text-right float-right mb-0">
-                <button type="button" id="btnCancelar" class="btn btn-outline btn-default">Cancelar</button>
-                <button type="button" id="btnSalvar" class="btn btn-outline btn-primary">Salvar</button>
-            </div>
-        </div>
-    </fieldset>
-</div>
-
-@section styles
-{
-    <link rel="stylesheet" href="~/lib/sweetalert2/sweetalert2.min.css" />
+@{
+    var listaDepartamentos = ViewData["ListaDepartamentos"] as List<WebApp_Desafio_Shared.ViewModels.DepartamentoViewModel>;
 }
 
-@section scripts
-{
-    <script src="~/lib/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="~/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
-    <script src="~/lib/bootstrap-datepicker/locales/bootstrap-datepicker.pt-br.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/js/Chamados/Cadastrar.js" asp-append-version="true"></script>
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>Chamados</h2>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-action="Index" asp-controller="Home">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-action="Listar" asp-controller="Chamados">Chamados</a>
+            </li>
+            <li class="breadcrumb-item active">
+                <strong>@ViewData["Title"]</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>@ViewData["Title"]</h5>
+                </div>
+                <div class="ibox-content">
+                    <form asp-action="Cadastrar" asp-controller="Chamados" id="form" method="post">
+                        <input type="hidden" asp-for="ID" />
+
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <label class="col-form-label" asp-for="DataAbertura">Data de Abertura</label>
+                                <div class="input-group date">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                    <input type="text" class="form-control" asp-for="DataAbertura" asp-format="{0:dd/MM/yyyy}" required>
+                                </div>
+                                <span asp-validation-for="DataAbertura" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-12">
+                                <label class="col-form-label" asp-for="Assunto">Assunto</label>
+                                <input type="text" class="form-control" asp-for="Assunto" required>
+                                <span asp-validation-for="Assunto" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <label class="col-form-label" asp-for="IdSolicitante">Solicitante</label>
+                                <select class="form-control" asp-for="IdSolicitante" id="solicitante-select" required>
+                                    @if (Model.ID > 0)
+                                    {
+                                        <option value="@Model.IdSolicitante" selected="selected">@Model.Solicitante</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="IdSolicitante" class="text-danger"></span>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="col-form-label" asp-for="IdDepartamento">Departamento</label>
+                                <select class="form-control" asp-for="IdDepartamento" asp-items="@(new SelectList(listaDepartamentos, "ID", "Descricao"))" required>
+                                    <option value="">Selecione um departamento</option>
+                                </select>
+                                <span asp-validation-for="IdDepartamento" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <div class="hr-line-dashed"></div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-12 text-right">
+                                <button class="btn btn-white" type="button" id="btnCancelar">Cancelar</button>
+                                <button class="btn btn-primary" type="button" id="btnSalvar">Salvar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/Chamados/Cadastrar.js"></script>
 }
