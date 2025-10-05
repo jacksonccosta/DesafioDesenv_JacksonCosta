@@ -10,6 +10,29 @@
         language: 'pt-BR'
     });
 
+    $('#solicitante-select').select2({
+        placeholder: "Digite para buscar um solicitante",
+        minimumInputLength: 2,
+        language: "pt-BR",
+        ajax: {
+            url: config.contextPath + 'Chamados/SearchSolicitantes',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    term: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data
+                };
+            },
+            cache: true
+        }
+    });
+
+
     $('#btnCancelar').click(function () {
         Swal.fire({
             html: "Deseja cancelar essa operação? O registro não será salvo.",

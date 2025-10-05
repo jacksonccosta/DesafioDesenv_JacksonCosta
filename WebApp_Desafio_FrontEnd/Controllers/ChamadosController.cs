@@ -66,9 +66,6 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             var departamentos = await _mediator.Send(new GetAllDepartamentosQuery());
             ViewData["ListaDepartamentos"] = departamentos.Select(d => new DepartamentoViewModel { ID = d.ID, Descricao = d.Descricao }).ToList();
 
-            var solicitantes = await _mediator.Send(new GetAllSolicitantesQuery());
-            ViewData["ListaSolicitantes"] = solicitantes.Select(s => new SolicitanteViewModel { ID = s.ID, Nome = s.Nome }).ToList();
-
             return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
         }
 
@@ -89,9 +86,6 @@ namespace WebApp_Desafio_FrontEnd.Controllers
 
             var departamentos = await _mediator.Send(new GetAllDepartamentosQuery());
             ViewData["ListaDepartamentos"] = departamentos.Select(d => new DepartamentoViewModel { ID = d.ID, Descricao = d.Descricao }).ToList();
-
-            var solicitantes = await _mediator.Send(new GetAllSolicitantesQuery());
-            ViewData["ListaSolicitantes"] = solicitantes.Select(s => new SolicitanteViewModel { ID = s.ID, Nome = s.Nome }).ToList();
 
             return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
         }
@@ -153,10 +147,15 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             {
                 return Json(new List<object>());
             }
+
             var query = new SearchSolicitantesQuery { TermoBusca = term };
-            var solicitantes = await _mediator.Send(query);
-            return Json(solicitantes);
+            var solicitantesEncontrados = await _mediator.Send(query);
+
+            var resultadoJson = solicitantesEncontrados.Select(s => new { id = s.Id, text = s.Text });
+
+            return Json(resultadoJson);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Report()

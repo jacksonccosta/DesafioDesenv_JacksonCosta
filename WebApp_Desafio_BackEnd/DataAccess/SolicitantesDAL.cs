@@ -43,7 +43,8 @@ namespace WebApp_Desafio_BackEnd.DataAccess
                 dbConnection.Open();
                 using (var dbCommand = dbConnection.CreateCommand())
                 {
-                    dbCommand.CommandText = "SELECT ID, Nome FROM solicitantes WHERE Nome LIKE @termo ORDER BY Nome";
+                    // Consulta modificada para ser case-insensitive (não sensível a maiúsculas/minúsculas)
+                    dbCommand.CommandText = "SELECT ID, Nome FROM solicitantes WHERE UPPER(Nome) LIKE UPPER(@termo) ORDER BY Nome";
                     dbCommand.Parameters.AddWithValue("@termo", $"%{termo}%");
 
                     using (var dataReader = dbCommand.ExecuteReader())
@@ -61,6 +62,7 @@ namespace WebApp_Desafio_BackEnd.DataAccess
             }
             return lista;
         }
+
         public IEnumerable<Solicitante> ListarSolicitantes()
         {
             var lista = new List<Solicitante>();

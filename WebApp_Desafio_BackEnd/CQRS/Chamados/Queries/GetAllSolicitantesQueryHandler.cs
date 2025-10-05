@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,11 +9,11 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Queries
 {
     public class GetAllSolicitantesQueryHandler : IRequestHandler<GetAllSolicitantesQuery, IEnumerable<Solicitante>>
     {
-        private readonly SolicitantesDAL _dal;
+        private readonly ISolicitantesDAL _dal;
 
-        public GetAllSolicitantesQueryHandler(IConfiguration configuration)
+        public GetAllSolicitantesQueryHandler(ISolicitantesDAL dal)
         {
-            _dal = new SolicitantesDAL(configuration.GetConnectionString("DefaultConnection"));
+            _dal = dal;
         }
 
         public Task<IEnumerable<Solicitante>> Handle(GetAllSolicitantesQuery request, CancellationToken cancellationToken)
