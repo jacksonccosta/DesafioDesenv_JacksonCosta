@@ -35,26 +35,19 @@ namespace WebApp_Desafio_FrontEnd.Controllers
         [HttpGet]
         public async Task<IActionResult> Datatable()
         {
-            try
+            var lstChamados = await _mediator.Send(new GetAllChamadosQuery());
+            var vms = lstChamados.Select(c => new ChamadoViewModel
             {
-                var lstChamados = await _mediator.Send(new GetAllChamadosQuery());
-                var vms = lstChamados.Select(c => new ChamadoViewModel
-                {
-                    ID = c.ID,
-                    Assunto = c.Assunto,
-                    Solicitante = c.Solicitante?.Nome,
-                    IdDepartamento = c.IdDepartamento,
-                    Departamento = c.Departamento?.Descricao,
-                    DataAbertura = c.DataAbertura
-                }).ToList();
+                ID = c.ID,
+                Assunto = c.Assunto,
+                Solicitante = c.Solicitante?.Nome,
+                IdDepartamento = c.IdDepartamento,
+                Departamento = c.Departamento?.Descricao,
+                DataAbertura = c.DataAbertura
+            }).ToList();
 
-                var dataTableVM = new DataTableAjaxViewModel() { data = vms };
-                return Ok(dataTableVM);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ResponseViewModel(ex));
-            }
+            var dataTableVM = new DataTableAjaxViewModel() { data = vms };
+            return Ok(dataTableVM);
         }
 
         [HttpGet]
@@ -91,55 +84,34 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
         }
 
-        #region Métodos Inalterados
         [HttpPost]
         public async Task<IActionResult> Cadastrar(ChamadoViewModel chamadoVM)
         {
-            try
+            var command = new GravarChamadoCommand
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                    throw new ApplicationException(string.Join(" ", errors));
-                }
+                ID = chamadoVM.ID,
+                Assunto = chamadoVM.Assunto,
+                IdSolicitante = chamadoVM.IdSolicitante,
+                IdDepartamento = chamadoVM.IdDepartamento,
+                DataAbertura = chamadoVM.DataAbertura
+            };
 
-                var command = new GravarChamadoCommand
-                {
-                    ID = chamadoVM.ID,
-                    Assunto = chamadoVM.Assunto,
-                    IdSolicitante = chamadoVM.IdSolicitante,
-                    IdDepartamento = chamadoVM.IdDepartamento,
-                    DataAbertura = chamadoVM.DataAbertura
-                };
+            var sucesso = await _mediator.Send(command);
 
-                var sucesso = await _mediator.Send(command);
+            if (sucesso)
+                return Ok(new ResponseViewModel("Sucesso!", "Chamado gravado com sucesso!", AlertTypes.success, "Chamados", nameof(Listar)));
 
-                if (sucesso)
-                    return Ok(new ResponseViewModel("Sucesso!", "Chamado gravado com sucesso!", AlertTypes.success, "Chamados", nameof(Listar)));
-                else
-                    throw new ApplicationException("Falha ao gravar o Chamado.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ResponseViewModel(ex));
-            }
+            throw new ApplicationException("Falha ao gravar o Chamado.");
         }
 
         [HttpDelete]
         public async Task<IActionResult> Excluir([FromRoute] int id)
         {
-            try
-            {
-                var sucesso = await _mediator.Send(new ExcluirChamadoCommand { Id = id });
-                if (sucesso)
-                    return Ok(new ResponseViewModel("Sucesso!", $"Chamado {id} excluído com sucesso!", AlertTypes.success));
-                else
-                    throw new ApplicationException($"Falha ao excluir o Chamado {id}.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ResponseViewModel(ex));
-            }
+            var sucesso = await _mediator.Send(new ExcluirChamadoCommand { Id = id });
+            if (sucesso)
+                return Ok(new ResponseViewModel("Sucesso!", $"Chamado {id} excluído com sucesso!", AlertTypes.success));
+
+            throw new ApplicationException($"Falha ao excluir o Chamado {id}.");
         }
 
         [HttpGet]
@@ -178,6 +150,5 @@ namespace WebApp_Desafio_FrontEnd.Controllers
             var result = localReport.Execute(RenderType.Pdf);
             return File(result.MainStream, "application/pdf", "RelatorioChamados.pdf");
         }
-        #endregion
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.DataAccess;
@@ -8,22 +9,35 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Commands
 {
     public class GravarDepartamentoCommandHandler : IRequestHandler<GravarDepartamentoCommand, bool>
     {
-        private readonly IDepartamentosDAL _departamentosDal;
+        private readonly ApplicationDbContext _context;
 
-        public GravarDepartamentoCommandHandler(IDepartamentosDAL departamentosDal)
+        public GravarDepartamentoCommandHandler(ApplicationDbContext context)
         {
-            _departamentosDal = departamentosDal ?? throw new System.ArgumentNullException(nameof(departamentosDal));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task<bool> Handle(GravarDepartamentoCommand request, CancellationToken cancellationToken)
         {
-            var departamento = new Departamento
-            {
-                ID = request.ID,
-                Descricao = request.Descricao
-            };
 
-            return await _departamentosDal.GravarDepartamento(departamento);
+            if (request.ID > 0)
+            {
+                var departamentoExistente = await _context.Departamentos.FindAsync(new object[] { request.ID }, cancellationToken);
+                if (departamentoExistente == null)
+                {
+                    throw new ApplicationException("Departamento não encontrado para atualização.");
+                }
+                departamentoExistente.Descricao = request.Descricao;
+            }
+            else
+            {
+                var novoDepartamento = new Departamento
+                {
+                    Descricao = request.Descricao
+                };
+                _context.Departamentos.Add(novoDepartamento);
+            }
+
+            return await _context.SaveChangesAsync(cancellationToken) > 0;
         }
     }
 }

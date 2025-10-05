@@ -18,9 +18,6 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries
 
         public async Task<Departamento> Handle(GetDepartamentoByIdQuery request, CancellationToken cancellationToken)
         {
-            if (request.Id <= 0)
-                throw new ArgumentException("O ID do departamento é inválido.");
-
             var departamento = await _dal.ObterDepartamento(request.Id);
 
             if (departamento == null)

@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Moq;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,50 +12,54 @@ namespace WebApp_Desafio_BackEnd.Tests.CQRS.Chamados.Commands
 {
     public class GravarChamadoCommandHandlerTests
     {
-        private readonly Mock<IChamadosDAL> _chamadosDalMock;
-        private readonly Mock<ISolicitantesDAL> _solicitantesDalMock;
-        private readonly GravarChamadoCommandHandler _handler;
-
-        public GravarChamadoCommandHandlerTests()
+        private ApplicationDbContext GetInMemoryDbContext()
         {
-            // Arrange (Setup inicial para todos os testes)
-            _chamadosDalMock = new Mock<IChamadosDAL>();
-            _solicitantesDalMock = new Mock<ISolicitantesDAL>();
-            _handler = new GravarChamadoCommandHandler(_chamadosDalMock.Object, _solicitantesDalMock.Object);
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            return new ApplicationDbContext(options);
         }
 
         [Fact]
-        public async Task Handle_QuandoComandoValidoParaNovoChamado_DeveRetornarTrue()
+        public async Task Handle_QuandoComandoValidoParaNovoChamado_DeveSalvarNoBanco()
         {
             // Arrange
+            var context = GetInMemoryDbContext();
+            var handler = new GravarChamadoCommandHandler(context);
+
+            var solicitante = new Solicitante { ID = 1, Nome = "Solicitante Teste" };
+            var departamento = new Departamento { ID = 1, Descricao = "Depto Teste" };
+
+            context.Solicitantes.Add(solicitante);
+            context.Departamentos.Add(departamento);
+            await context.SaveChangesAsync();
+
             var command = new GravarChamadoCommand
             {
-                ID = 0,
+                ID = 0, // Novo chamado
                 Assunto = "Teste de Assunto",
                 IdSolicitante = 1,
                 IdDepartamento = 1,
                 DataAbertura = DateTime.Now
             };
 
-            var solicitante = new Solicitante { ID = 1, Nome = "Solicitante Teste" };
-
-            _solicitantesDalMock.Setup(s => s.ObterSolicitante(command.IdSolicitante)).ReturnsAsync(solicitante);
-
-            _chamadosDalMock.Setup(c => c.GravarChamado(It.IsAny<Chamado>())).ReturnsAsync(true);
-
             // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+            var result = await handler.Handle(command, CancellationToken.None);
 
             // Assert
             result.Should().BeTrue();
-            _solicitantesDalMock.Verify(s => s.ObterSolicitante(command.IdSolicitante), Times.Once);
-            _chamadosDalMock.Verify(c => c.GravarChamado(It.IsAny<Chamado>()), Times.Once);
+            var chamadoSalvo = await context.Chamados.FirstOrDefaultAsync();
+            chamadoSalvo.Should().NotBeNull();
+            chamadoSalvo.Assunto.Should().Be("Teste de Assunto");
+            chamadoSalvo.IdSolicitante.Should().Be(1);
         }
 
         [Fact]
         public async Task Handle_QuandoDataForRetroativa_DeveLancarApplicationException()
         {
             // Arrange
+            var context = GetInMemoryDbContext();
+            var handler = new GravarChamadoCommandHandler(context);
             var command = new GravarChamadoCommand
             {
                 ID = 0,
@@ -63,11 +67,33 @@ namespace WebApp_Desafio_BackEnd.Tests.CQRS.Chamados.Commands
             };
 
             // Act
-            Func<Task> act = async () => await _handler.Handle(command, CancellationToken.None);
+            Func<Task> act = async () => await handler.Handle(command, CancellationToken.None);
 
             // Assert
             await act.Should().ThrowAsync<ApplicationException>()
-                .WithMessage("A data de abertura não pode ser retroativa.");
+                     .WithMessage("Não é permitido CRIAR chamados com data retroativa.");
+        }
+
+        [Fact]
+        public async Task Handle_QuandoSolicitanteNaoEncontrado_DeveLancarApplicationException()
+        {
+            // Arrange
+            var context = GetInMemoryDbContext();
+            var handler = new GravarChamadoCommandHandler(context);
+            var command = new GravarChamadoCommand
+            {
+                ID = 0,
+                IdSolicitante = 999, // ID inexistente
+                IdDepartamento = 1,
+                DataAbertura = DateTime.Now
+            };
+
+            // Act
+            Func<Task> act = async () => await handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            await act.Should().ThrowAsync<ApplicationException>()
+                     .WithMessage($"Solicitante com ID {command.IdSolicitante} não encontrado.");
         }
     }
 }

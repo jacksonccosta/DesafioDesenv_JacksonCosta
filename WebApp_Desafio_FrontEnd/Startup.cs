@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -15,6 +15,8 @@ using System.Globalization;
 using System.Text;
 using WebApp_Desafio_BackEnd;
 using WebApp_Desafio_BackEnd.DataAccess;
+using WebApp_Desafio_BackEnd.PipelineBehaviors;
+using WebApp_Desafio_FrontEnd.Middleware;
 
 namespace WebApp_Desafio_FrontEnd
 {
@@ -47,17 +49,21 @@ namespace WebApp_Desafio_FrontEnd
             services.AddScoped<ISolicitantesDAL, SolicitantesDAL>();
             services.AddScoped<IDepartamentosDAL, DepartamentosDAL>();
 
+            services.AddHttpContextAccessor();
+            services.AddLocalization(options => options.ResourcesPath = "Resources");
+
             services
-                .AddHttpContextAccessor()
-                .AddLocalization()
                 .AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                //.AddViewLocalization(LanguageViewLocation.Suffix)
+                .AddDataAnnotationsLocalization()
                 .AddJsonOptions(options => options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore)
                 .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
                 .AddJsonOptions(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()))
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<BackendAssemblyReference>());
 
             services.AddMediatR(typeof(BackendAssemblyReference).Assembly);
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -79,6 +85,8 @@ namespace WebApp_Desafio_FrontEnd
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

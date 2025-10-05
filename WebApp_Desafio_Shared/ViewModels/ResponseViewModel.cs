@@ -11,7 +11,10 @@ namespace WebApp_Desafio_Shared.ViewModels
         public string Title { get; set; }
         public string Message { get; set; }
 
-        public ResponseViewModel() { }
+        public ResponseViewModel(string message)
+        {
+            Message = message;
+        }
 
         public ResponseViewModel(
             string title,
