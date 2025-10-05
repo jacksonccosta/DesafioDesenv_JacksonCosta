@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.Models;
 
 namespace WebApp_Desafio_BackEnd.DataAccess
 {
     public interface IDepartamentosDAL
     {
-        IEnumerable<Departamento> ListarDepartamentos();
-        Departamento ObterDepartamento(int id);
-        bool GravarDepartamento(Departamento departamento);
-        bool ExcluirDepartamento(int id);
+        Task<IEnumerable<Departamento>> ListarDepartamentos();
+        Task<Departamento> ObterDepartamento(int id);
+        Task<bool> GravarDepartamento(Departamento departamento);
+        Task<bool> ExcluirDepartamento(int id);
     }
 }

@@ -1,117 +1,136 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Http;
+﻿using AspNetCore.Reporting;
+using MediatR;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using WebApp_Desafio_API.Extensions;
-using WebApp_Desafio_Shared.ViewModels;
-using WebApp_Desafio_Shared.ViewModels.Enums;
 using WebApp_Desafio_BackEnd.CQRS.Chamados.Commands;
 using WebApp_Desafio_BackEnd.CQRS.Chamados.Queries;
+using WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries;
+using WebApp_Desafio_Shared.ViewModels;
+using WebApp_Desafio_Shared.ViewModels.Enums;
 
-namespace WebApp_Desafio_API.Controllers
+namespace WebApp_Desafio_FrontEnd.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ChamadosController : ControllerBase
+    public class ChamadosController : Controller
     {
         private readonly IMediator _mediator;
+        private readonly IHostingEnvironment _hostEnvironment;
 
-        public ChamadosController(IMediator mediator)
+        public ChamadosController(IMediator mediator, IHostingEnvironment hostEnvironment)
         {
             _mediator = mediator;
+            _hostEnvironment = hostEnvironment;
         }
 
         [HttpGet]
-        [Route("Listar")]
-        [ProducesResponseType(typeof(IEnumerable<ChamadoResponse>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Listar()
+        public IActionResult Index() => RedirectToAction(nameof(Listar));
+
+        [HttpGet]
+        public IActionResult Listar() => View("~/Views/Chamados/Listar.cshtml");
+
+        [HttpGet]
+        public async Task<IActionResult> Datatable()
         {
             try
             {
-                var chamados = await _mediator.Send(new GetAllChamadosQuery());
-                var response = chamados.Select(c => new ChamadoResponse
+                var lstChamados = await _mediator.Send(new GetAllChamadosQuery());
+                var vms = lstChamados.Select(c => new ChamadoViewModel
                 {
-                    id = c.ID,
-                    assunto = c.Assunto,
-                    solicitante = c.Solicitante,
-                    idDepartamento = c.IdDepartamento,
-                    departamento = c.Departamento,
-                    dataAbertura = c.DataAbertura
-                });
-                return Ok(response);
+                    ID = c.ID,
+                    Assunto = c.Assunto,
+                    Solicitante = c.Solicitante?.Nome,
+                    IdDepartamento = c.IdDepartamento,
+                    Departamento = c.Departamento?.Descricao,
+                    DataAbertura = c.DataAbertura
+                }).ToList();
+
+                var dataTableVM = new DataTableAjaxViewModel() { data = vms };
+                return Ok(dataTableVM);
             }
             catch (Exception ex)
             {
-                return this.ExceptionProcess(ex);
+                return BadRequest(new ResponseViewModel(ex));
             }
         }
 
         [HttpGet]
-        [Route("Obter")]
-        [ProducesResponseType(typeof(ChamadoResponse), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Obter([FromQuery] int id)
+        public async Task<IActionResult> Cadastrar()
         {
-            try
-            {
-                var chamado = await _mediator.Send(new GetChamadoByIdQuery { Id = id });
-                var response = new ChamadoResponse
-                {
-                    id = chamado.ID,
-                    assunto = chamado.Assunto,
-                    solicitante = chamado.Solicitante,
-                    idDepartamento = chamado.IdDepartamento,
-                    departamento = chamado.Departamento,
-                    dataAbertura = chamado.DataAbertura
-                };
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return this.ExceptionProcess(ex);
-            }
+            var chamadoVM = new ChamadoViewModel { DataAbertura = DateTime.Now };
+            ViewData["Title"] = "Cadastrar Novo Chamado";
+
+            var departamentos = await _mediator.Send(new GetAllDepartamentosQuery());
+            ViewData["ListaDepartamentos"] = departamentos.Select(d => new DepartamentoViewModel { ID = d.ID, Descricao = d.Descricao }).ToList();
+
+            return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Editar([FromRoute] int id)
+        {
+            ViewData["Title"] = "Editar Chamado";
+            var chamado = await _mediator.Send(new GetChamadoByIdQuery { Id = id });
+            var chamadoVM = new ChamadoViewModel
+            {
+                ID = chamado.ID,
+                Assunto = chamado.Assunto,
+                IdSolicitante = chamado.IdSolicitante,
+                Solicitante = chamado.Solicitante?.Nome,
+                IdDepartamento = chamado.IdDepartamento,
+                Departamento = chamado.Departamento?.Descricao,
+                DataAbertura = chamado.DataAbertura
+            };
+
+            var departamentos = await _mediator.Send(new GetAllDepartamentosQuery());
+            ViewData["ListaDepartamentos"] = departamentos.Select(d => new DepartamentoViewModel { ID = d.ID, Descricao = d.Descricao }).ToList();
+
+            return View("~/Views/Chamados/Cadastrar.cshtml", chamadoVM);
+        }
+
+        #region Métodos Inalterados
         [HttpPost]
-        [Route("Gravar")]
-        [ProducesResponseType(typeof(ResponseViewModel), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Gravar([FromBody] ChamadoRequest chamadoRequest)
+        public async Task<IActionResult> Cadastrar(ChamadoViewModel chamadoVM)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    throw new ApplicationException(string.Join(" ", errors));
+                }
+
                 var command = new GravarChamadoCommand
                 {
-                    ID = chamadoRequest.id,
-                    Assunto = chamadoRequest.assunto,
-                    IdSolicitante = chamadoRequest.idSolicitante,
-                    IdDepartamento = chamadoRequest.idDepartamento,
-                    DataAbertura = chamadoRequest.dataAbertura
+                    ID = chamadoVM.ID,
+                    Assunto = chamadoVM.Assunto,
+                    IdSolicitante = chamadoVM.IdSolicitante,
+                    IdDepartamento = chamadoVM.IdDepartamento,
+                    DataAbertura = chamadoVM.DataAbertura
                 };
 
                 var sucesso = await _mediator.Send(command);
 
                 if (sucesso)
-                    return Ok(new ResponseViewModel("Sucesso!", "Chamado gravado com sucesso!", AlertTypes.success));
+                    return Ok(new ResponseViewModel("Sucesso!", "Chamado gravado com sucesso!", AlertTypes.success, "Chamados", nameof(Listar)));
                 else
                     throw new ApplicationException("Falha ao gravar o Chamado.");
             }
             catch (Exception ex)
             {
-                return this.ExceptionProcess(ex);
+                return BadRequest(new ResponseViewModel(ex));
             }
         }
 
         [HttpDelete]
-        [Route("Excluir")]
-        [ProducesResponseType(typeof(ResponseViewModel), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Excluir([FromQuery] int id)
+        public async Task<IActionResult> Excluir([FromRoute] int id)
         {
             try
             {
                 var sucesso = await _mediator.Send(new ExcluirChamadoCommand { Id = id });
-
                 if (sucesso)
                     return Ok(new ResponseViewModel("Sucesso!", $"Chamado {id} excluído com sucesso!", AlertTypes.success));
                 else
@@ -119,25 +138,46 @@ namespace WebApp_Desafio_API.Controllers
             }
             catch (Exception ex)
             {
-                return this.ExceptionProcess(ex);
+                return BadRequest(new ResponseViewModel(ex));
             }
         }
 
         [HttpGet]
-        [Route("SearchSolicitantes")]
-        [ProducesResponseType(typeof(IEnumerable<SolicitanteDTO>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> SearchSolicitantes([FromQuery] string term)
+        public async Task<IActionResult> SearchSolicitantes(string term)
         {
-            try
+            if (string.IsNullOrEmpty(term) || term.Length < 2)
             {
-                var query = new SearchSolicitantesQuery { TermoBusca = term ?? "" };
-                var solicitantes = await _mediator.Send(query);
-                return Ok(solicitantes);
+                return Json(new List<object>());
             }
-            catch (Exception ex)
-            {
-                return this.ExceptionProcess(ex);
-            }
+            var query = new SearchSolicitantesQuery { TermoBusca = term };
+            var solicitantes = await _mediator.Send(query);
+            return Json(solicitantes.Select(s => new { id = s.Id, text = s.Text }));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Report()
+        {
+            string contentRootPath = _hostEnvironment.ContentRootPath;
+            string path = Path.Combine(contentRootPath, "Reports", "rptChamados.rdlc");
+
+            LocalReport localReport = new LocalReport(path);
+
+            var lstChamados = await _mediator.Send(new GetAllChamadosQuery());
+
+            var reportData = lstChamados.Select(c => new
+            {
+                c.ID,
+                c.Assunto,
+                Solicitante = c.Solicitante?.Nome,
+                Departamento = c.Departamento?.Descricao,
+                c.DataAbertura
+            }).ToList();
+
+            localReport.AddDataSource("dsChamados", reportData);
+
+            var result = localReport.Execute(RenderType.Pdf);
+            return File(result.MainStream, "application/pdf", "RelatorioChamados.pdf");
+        }
+        #endregion
     }
 }

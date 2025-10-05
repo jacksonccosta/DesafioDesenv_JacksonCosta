@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using WebApp_Desafio_BackEnd.Models;
 
 namespace WebApp_Desafio_BackEnd.DataAccess
 {
     public interface IChamadosDAL
     {
-        IEnumerable<Chamado> ListarChamados();
-        Chamado ObterChamado(int idChamado);
-        bool GravarChamado(Chamado chamado);
-        bool ExcluirChamado(int idChamado);
+        Task<IEnumerable<Chamado>> ListarChamados();
+        Task<Chamado> ObterChamado(int idChamado);
+        Task<bool> GravarChamado(Chamado chamado);
+        Task<bool> ExcluirChamado(int idChamado);
     }
 }

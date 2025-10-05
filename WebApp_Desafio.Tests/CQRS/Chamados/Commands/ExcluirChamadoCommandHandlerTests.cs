@@ -25,7 +25,7 @@ namespace WebApp_Desafio_BackEnd.Tests.CQRS.Chamados.Commands
         {
             // Arrange
             var command = new ExcluirChamadoCommand { Id = 1 };
-            _chamadosDalMock.Setup(d => d.ExcluirChamado(command.Id)).Returns(true);
+            _chamadosDalMock.Setup(d => d.ExcluirChamado(command.Id)).ReturnsAsync(true);
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);

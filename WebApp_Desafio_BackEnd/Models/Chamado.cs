@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebApp_Desafio_BackEnd.Models
 {
@@ -12,13 +13,20 @@ namespace WebApp_Desafio_BackEnd.Models
         [Required(ErrorMessage = "O Assunto é obrigatório")]
         public string Assunto { get; set; }
 
+        [Required]
         public int IdSolicitante { get; set; }
+        public Solicitante Solicitante { get; set; }
 
-        public string Solicitante { get; set; }
-
+        [Required]
         public int IdDepartamento { get; set; }
-        public string Departamento { get; set; }
+        public Departamento Departamento { get; set; }
 
         public DateTime DataAbertura { get; set; }
+
+        [NotMapped]
+        public string SolicitanteNome { get; set; }
+
+        [NotMapped]
+        public string DepartamentoNome { get; set; }
     }
 }

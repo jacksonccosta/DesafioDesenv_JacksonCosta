@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,24 +9,24 @@ namespace WebApp_Desafio_BackEnd.CQRS.Departamentos.Queries
 {
     public class GetDepartamentoByIdQueryHandler : IRequestHandler<GetDepartamentoByIdQuery, Departamento>
     {
-        private readonly DepartamentosDAL _dal;
+        private readonly IDepartamentosDAL _dal;
 
-        public GetDepartamentoByIdQueryHandler(IConfiguration configuration)
+        public GetDepartamentoByIdQueryHandler(IDepartamentosDAL dal)
         {
-            _dal = new DepartamentosDAL(configuration.GetConnectionString("DefaultConnection"));
+            _dal = dal;
         }
 
-        public Task<Departamento> Handle(GetDepartamentoByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Departamento> Handle(GetDepartamentoByIdQuery request, CancellationToken cancellationToken)
         {
             if (request.Id <= 0)
                 throw new ArgumentException("O ID do departamento é inválido.");
 
-            var departamento = _dal.ObterDepartamento(request.Id);
+            var departamento = await _dal.ObterDepartamento(request.Id);
 
             if (departamento == null)
                 throw new ApplicationException("Departamento não encontrado.");
 
-            return Task.FromResult(departamento);
+            return departamento;
         }
     }
 }

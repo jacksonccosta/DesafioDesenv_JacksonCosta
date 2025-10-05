@@ -16,10 +16,9 @@ namespace WebApp_Desafio_BackEnd.CQRS.Chamados.Queries
             _dal = dal;
         }
 
-        public Task<IEnumerable<Solicitante>> Handle(GetAllSolicitantesQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<Solicitante>> Handle(GetAllSolicitantesQuery request, CancellationToken cancellationToken)
         {
-            var result = _dal.ListarSolicitantes();
-            return Task.FromResult(result);
+            return await _dal.ListarSolicitantes();
         }
     }
 }
